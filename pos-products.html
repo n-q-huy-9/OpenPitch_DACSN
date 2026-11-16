@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Hàng Hóa & Bán Hàng - openPitch</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .product-card {
+            cursor: pointer;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            transition: all 0.15s ease;
+        }
+        .product-card:hover {
+            border-color: #16A34A;
+            background-color: #F0FDF4;
+            transform: translateY(-2px);
+        }
+        .pos-bill {
+            position: sticky;
+            top: 90px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar d-flex flex-column p-3">
+        <a href="index.html" class="d-flex align-items-center gap-2 text-white text-decoration-none px-2 py-3 mb-3 border-bottom border-secondary border-opacity-25">
+            <div class="bg-success rounded-3 p-2 d-flex align-items-center justify-content-center">
+                <i class="bi bi-dribbble fs-4 text-white"></i>
+            </div>
+            <div>
+                <h5 class="mb-0 fw-bold">openPitch</h5>
+                <small class="text-secondary" style="font-size: 0.75rem;">Quản lý sân bóng phong trào</small>
+            </div>
+        </a>
+
+        <ul class="nav nav-pills flex-column mb-auto">
+            <li class="nav-item"><a href="index.html" class="nav-link"><i class="bi bi-bar-chart-line-fill"></i> Quản lý doanh thu</a></li>
+            <li class="nav-item"><a href="bookings.html" class="nav-link"><i class="bi bi-calendar2-week"></i> Quản lý lịch đặt sân</a></li>
+            <li class="nav-item"><a href="pitches.html" class="nav-link"><i class="bi bi-grid-1x2"></i> Quản lý sân bóng</a></li>
+            <li class="nav-item"><a href="pos-products.html" class="nav-link active"><i class="bi bi-cup-straw"></i> Quản lý hàng hóa (POS)</a></li>
+            <li class="nav-item">
+                <a href="inventory.html" class="nav-link d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-box-seam me-2"></i> Quản lý kho hàng</span>
+                    <span class="badge bg-danger rounded-pill" id="lowStockBadge">0</span>
+                </a>
+            </li>
+            <li class="nav-item"><a href="tournaments.html" class="nav-link"><i class="bi bi-trophy"></i> Quản lý giải đấu</a></li>
+        </ul>
+
+        <button onclick="resetDemoData()" class="btn btn-outline-secondary btn-sm mt-auto text-light border-secondary">
+            <i class="bi bi-arrow-counterclockwise me-1"></i> Khôi phục dữ liệu mẫu
+        </button>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <header class="topbar d-flex align-items-center justify-content-between px-4 sticky-top">
+            <div>
+                <h5 class="mb-0 fw-bold">Quản Lý Hàng Hóa & Bán Hàng Tại Sân (POS)</h5>
+                <small class="text-muted">Quản lý thực đơn nước uống, đồ ăn, phụ kiện và lập hóa đơn bán hàng nhanh</small>
+            </div>
+            <button class="btn btn-pitch btn-sm px-3 py-2" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                <i class="bi bi-plus-lg me-1"></i> Thêm sản phẩm mới
+            </button>
+        </header>
+
+        <main class="p-4">
+            <div class="row g-4">
+                <!-- CỘT TRÁI (8 CỘT): DANH MỤC SẢN PHẨM -->
+                <div class="col-lg-8">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-outline-secondary btn-sm active" onclick="filterCategory('all', this)">Tất cả mặt hàng</button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="filterCategory('Nước uống', this)">Nước uống</button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="filterCategory('Đồ ăn', this)">Đồ ăn nhẹ</button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="filterCategory('Phụ kiện', this)">Phụ kiện bóng đá</button>
+                        </div>
+                        <span class="small text-muted"><i class="bi bi-hand-index-thumb me-1"></i> Bấm vào sản phẩm để thêm vào hóa đơn</span>
+                    </div>
+
+                    <div class="row g-3" id="productGrid"></div>
+                </div>
+
+                <!-- CỘT PHẢI (4 CỘT): HÓA ĐƠN BÁN HÀNG TẠI SÂN -->
+                <div class="col-lg-4">
+                    <div class="card card-custom p-3 pos-bill">
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                            <h6 class="fw-bold mb-0"><i class="bi bi-receipt-cutoff text-success me-1"></i> Hóa đơn bán hàng</h6>
+                            <button class="btn btn-link btn-sm text-danger text-decoration-none p-0" onclick="clearCart()">Xóa hết</button>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Khách hàng / Gắn vào sân đang đá:</label>
+                            <select id="posCustomerSelect" class="form-select form-select-sm">
+                                <option value="Khách mua lẻ tại quầy">Khách mua lẻ tại quầy</option>
+                                <option value="Sân 5A - Anh Tuấn (Ca 16:30)">Sân 5A - Anh Tuấn (Đang đá)</option>
+                                <option value="Sân 5B - FC Bình Minh (Ca 18:00)">Sân 5B - FC Bình Minh (Đang đá)</option>
+                                <option value="Sân 7A - Giải Tứ Hùng">Sân 7A - Giải Tứ Hùng</option>
+                            </select>
+                        </div>
+
+                        <!-- Danh sách món đã chọn -->
+                        <div id="cartItemsContainer" class="mb-3" style="max-height: 290px; overflow-y: auto;"></div>
+
+                        <div class="border-top pt-3">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="fw-semibold">Tổng tiền thanh toán:</span>
+                                <h4 class="fw-bold text-success mb-0" id="cartTotalAmount">0đ</h4>
+                            </div>
+                            <button class="btn btn-pitch w-100 py-2" onclick="checkoutPOS()">
+                                <i class="bi bi-check2-circle me-1"></i> Thanh toán & Xuất kho
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL THÊM SẢN PHẨM MỚI -->
+    <div class="modal fade" id="addProductModal" tabindex="-1">
+        <div class="modal-dialog">
+            <form class="modal-content" onsubmit="addNewProduct(event)">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Thêm hàng hóa kinh doanh mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Tên sản phẩm</label>
+                        <input type="text" id="newProdName" class="form-control" placeholder="VD: Nước chanh dây đóng chai" required>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Danh mục</label>
+                            <select id="newProdCat" class="form-select">
+                                <option value="Nước uống">Nước uống</option>
+                                <option value="Đồ ăn">Đồ ăn</option>
+                                <option value="Phụ kiện">Phụ kiện</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Đơn vị tính</label>
+                            <input type="text" id="newProdUnit" class="form-control" value="Chai" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Giá nhập vốn (VNĐ)</label>
+                            <input type="number" id="newProdCost" class="form-control" value="6000" step="1000" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Giá bán tại sân (VNĐ)</label>
+                            <input type="number" id="newProdPrice" class="form-control" value="12000" step="1000" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Số lượng tồn ban đầu</label>
+                            <input type="number" id="newProdStock" class="form-control" value="24" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Mức cảnh báo sắp hết</label>
+                            <input type="number" id="newProdMin" class="form-control" value="10" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-pitch">Lưu sản phẩm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/data.js"></script>
+    <script>
+        let currentCat = 'all';
+        let cart = [];
+
+        function renderProducts() {
+            const db = getPitchData();
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = '';
+
+            // Cập nhật badge cảnh báo trên sidebar
+            const lowStockCount = db.products.filter(p => p.stock <= p.minStock).length;
+            document.getElementById('lowStockBadge').innerText = lowStockCount;
+
+            const list = db.products.filter(p => currentCat === 'all' || p.category === currentCat);
+
+            list.forEach(p => {
+                const isLow = p.stock <= p.minStock;
+                grid.innerHTML += `
+                    <div class="col-md-4">
+                        <div class="card product-card p-3 h-100" onclick="addToCart('${p.id}')">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="icon-box bg-success bg-opacity-10 text-success">
+                                    <i class="bi ${p.icon || 'bi-box'}"></i>
+                                </div>
+                                <span class="badge ${isLow ? 'bg-danger' : 'bg-light text-secondary border'}">
+                                    Kho: ${p.stock} ${p.unit}
+                                </span>
+                            </div>
+                            <span class="text-muted" style="font-size: 0.75rem;">${p.category}</span>
+                            <h6 class="fw-bold mb-2">${p.name}</h6>
+                            <div class="mt-auto d-flex justify-content-between align-items-center pt-2 border-top">
+                                <span class="fw-bold text-success">${formatVND(p.sellPrice)}</span>
+                                <span class="btn btn-sm btn-outline-success py-0 px-2">+ Chọn</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function filterCategory(cat, btn) {
+            currentCat = cat;
+            document.querySelectorAll('.btn-group .btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderProducts();
+        }
+
+        function addToCart(prodId) {
+            const db = getPitchData();
+            const prod = db.products.find(p => p.id === prodId);
+            if (!prod || prod.stock <= 0) {
+                alert('Sản phẩm này đã hết hàng trong kho!');
+                return;
+            }
+
+            const item = cart.find(c => c.id === prodId);
+            if (item) {
+                if (item.qty >= prod.stock) {
+                    alert('Số lượng chọn vượt quá tồn kho hiện tại!');
+                    return;
+                }
+                item.qty++;
+            } else {
+                cart.push({ id: prod.id, name: prod.name, price: prod.sellPrice, qty: 1, unit: prod.unit });
+            }
+            renderCart();
+        }
+
+        function changeQty(prodId, delta) {
+            const item = cart.find(c => c.id === prodId);
+            if (!item) return;
+            item.qty += delta;
+            if (item.qty <= 0) {
+                cart = cart.filter(c => c.id !== prodId);
+            }
+            renderCart();
+        }
+
+        function clearCart() {
+            cart = [];
+            renderCart();
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cartItemsContainer');
+            const totalEl = document.getElementById('cartTotalAmount');
+
+            if (cart.length === 0) {
+                container.innerHTML = `<div class="text-center text-muted py-4 small">Chưa có mặt hàng nào được chọn</div>`;
+                totalEl.innerText = '0đ';
+                return;
+            }
+
+            let total = 0;
+            container.innerHTML = '';
+            cart.forEach(item => {
+                const sub = item.price * item.qty;
+                total += sub;
+                container.innerHTML += `
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom small">
+                        <div style="max-width: 55%;">
+                            <div class="fw-semibold text-truncate">${item.name}</div>
+                            <span class="text-muted">${formatVND(item.price)} / ${item.unit}</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-1">
+                            <button class="btn btn-outline-secondary btn-sm py-0 px-2" onclick="changeQty('${item.id}', -1)">-</button>
+                            <span class="fw-bold px-1">${item.qty}</span>
+                            <button class="btn btn-outline-secondary btn-sm py-0 px-2" onclick="changeQty('${item.id}', 1)">+</button>
+                        </div>
+                    </div>
+                `;
+            });
+            totalEl.innerText = formatVND(total);
+        }
+
+        function checkoutPOS() {
+            if (cart.length === 0) {
+                alert('Vui lòng chọn ít nhất 1 sản phẩm để thanh toán!');
+                return;
+            }
+            const db = getPitchData();
+            const customer = document.getElementById('posCustomerSelect').value;
+            const nowStr = new Date().toLocaleString('vi-VN');
+
+            // Trừ kho & Ghi lịch sử xuất kho
+            cart.forEach(item => {
+                const prod = db.products.find(p => p.id === item.id);
+                if (prod) {
+                    prod.stock = Math.max(0, prod.stock - item.qty);
+                    db.inventoryLogs.unshift({
+                        id: 'XK' + Math.floor(Math.random() * 900 + 100),
+                        time: nowStr,
+                        productName: prod.name,
+                        type: 'EXPORT',
+                        qty: item.qty,
+                        note: 'Bán hàng POS: ' + customer
+                    });
+                }
+            });
+
+            savePitchData(db);
+            alert('Đã thanh toán hóa đơn và tự động trừ số lượng tồn kho thành công!');
+            clearCart();
+            renderProducts();
+        }
+
+        function addNewProduct(e) {
+            e.preventDefault();
+            const db = getPitchData();
+            db.products.push({
+                id: 'SP' + Date.now().toString().slice(-3),
+                name: document.getElementById('newProdName').value,
+                category: document.getElementById('newProdCat').value,
+                unit: document.getElementById('newProdUnit').value,
+                costPrice: Number(document.getElementById('newProdCost').value),
+                sellPrice: Number(document.getElementById('newProdPrice').value),
+                stock: Number(document.getElementById('newProdStock').value),
+                minStock: Number(document.getElementById('newProdMin').value),
+                icon: 'bi-cup-straw'
+            });
+            savePitchData(db);
+            bootstrap.Modal.getInstance(document.getElementById('addProductModal')).hide();
+            e.target.reset();
+            renderProducts();
+        }
+
+        renderProducts();
+        renderCart();
+    </script>
+</body>
+</html>

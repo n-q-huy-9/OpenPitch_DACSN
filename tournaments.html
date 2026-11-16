@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Giải Đấu - openPitch</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .tournament-banner {
+            background: linear-gradient(135deg, #0F172A 0%, #16A34A 100%);
+            border-radius: 16px;
+            color: white;
+        }
+        .score-box {
+            display: inline-block;
+            min-width: 34px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            background: #0F172A;
+            color: #fff;
+            font-weight: 700;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar d-flex flex-column p-3">
+        <a href="index.html" class="d-flex align-items-center gap-2 text-white text-decoration-none px-2 py-3 mb-3 border-bottom border-secondary border-opacity-25">
+            <div class="bg-success rounded-3 p-2 d-flex align-items-center justify-content-center">
+                <i class="bi bi-dribbble fs-4 text-white"></i>
+            </div>
+            <div>
+                <h5 class="mb-0 fw-bold">openPitch</h5>
+                <small class="text-secondary" style="font-size: 0.75rem;">Quản lý sân bóng phong trào</small>
+            </div>
+        </a>
+
+        <ul class="nav nav-pills flex-column mb-auto">
+            <li class="nav-item"><a href="index.html" class="nav-link"><i class="bi bi-bar-chart-line-fill"></i> Quản lý doanh thu</a></li>
+            <li class="nav-item"><a href="bookings.html" class="nav-link"><i class="bi bi-calendar2-week"></i> Quản lý lịch đặt sân</a></li>
+            <li class="nav-item"><a href="pitches.html" class="nav-link"><i class="bi bi-grid-1x2"></i> Quản lý sân bóng</a></li>
+            <li class="nav-item"><a href="pos-products.html" class="nav-link"><i class="bi bi-cup-straw"></i> Quản lý hàng hóa (POS)</a></li>
+            <li class="nav-item">
+                <a href="inventory.html" class="nav-link d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-box-seam me-2"></i> Quản lý kho hàng</span>
+                    <span class="badge bg-danger rounded-pill" id="sidebarAlertCount">0</span>
+                </a>
+            </li>
+            <li class="nav-item"><a href="tournaments.html" class="nav-link active"><i class="bi bi-trophy"></i> Quản lý giải đấu</a></li>
+        </ul>
+
+        <div class="d-grid gap-2 mt-auto">
+            <button onclick="resetDemoData()" class="btn btn-outline-secondary btn-sm text-light border-secondary">
+                <i class="bi bi-arrow-counterclockwise me-1"></i> Khôi phục dữ liệu mẫu
+            </button>
+            <a href="login.html" class="btn btn-outline-danger btn-sm">
+                <i class="bi bi-box-arrow-left me-1"></i> Đăng xuất
+            </a>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <header class="topbar d-flex align-items-center justify-content-between px-4 sticky-top">
+            <div>
+                <h5 class="mb-0 fw-bold">Quản Lý Giải Đấu Phong Trào</h5>
+                <small class="text-muted">Tạo giải đấu, quản lý đội bóng tham gia, lịch thi đấu và cập nhật kết quả</small>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-success btn-sm px-3 py-2" data-bs-toggle="modal" data-bs-target="#addTeamModal">
+                    <i class="bi bi-people-fill me-1"></i> + Thêm đội tham gia
+                </button>
+                <button class="btn btn-pitch btn-sm px-3 py-2" data-bs-toggle="modal" data-bs-target="#createTourModal">
+                    <i class="bi bi-trophy-fill me-1"></i> Tạo / Cấu hình giải đấu
+                </button>
+            </div>
+        </header>
+
+        <main class="p-4">
+            <!-- BANNER GIẢI ĐẤU -->
+            <div class="tournament-banner p-4 mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div>
+                    <span class="badge bg-warning text-dark mb-2" id="tourStatusBadge">Đang diễn ra</span>
+                    <h4 class="fw-bold mb-1" id="tourTitle">Giải Bóng Đá Phong Trào</h4>
+                    <div class="small opacity-75">
+                        <i class="bi bi-award me-1"></i> Giải thưởng: <strong id="tourPrize">5.000.000đ</strong> 
+                        <span class="mx-2">•</span>
+                        <i class="bi bi-geo-alt me-1"></i> Địa điểm: Cụm sân bóng Hiệp Phát (Sân 7A)
+                    </div>
+                </div>
+                <div class="d-flex gap-3 text-center">
+                    <div class="bg-white bg-opacity-10 rounded-3 px-3 py-2">
+                        <div class="fs-5 fw-bold" id="totalTeamsStat">4</div>
+                        <small class="opacity-75">Đội tham gia</small>
+                    </div>
+                    <div class="bg-white bg-opacity-10 rounded-3 px-3 py-2">
+                        <div class="fs-5 fw-bold" id="totalMatchesStat">6</div>
+                        <small class="opacity-75">Trận đấu</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- CỘT TRÁI (7 CỘT): BẢNG XẾP HẠNG & ĐỘI THAM GIA -->
+                <div class="col-lg-7">
+                    <div class="card card-custom p-4 mb-4">
+                        <h6 class="fw-bold mb-3"><i class="bi bi-list-ol text-success me-1"></i> Bảng xếp hạng & Đội tham gia</h6>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle small mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Hạng</th>
+                                        <th>Đội bóng / Đội trưởng</th>
+                                        <th class="text-center">Số trận</th>
+                                        <th class="text-center">T - H - B</th>
+                                        <th class="text-center">Điểm</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="standingsBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CỘT PHẢI (5 CỘT): LỊCH THI ĐẤU & KẾT QUẢ -->
+                <div class="col-lg-5">
+                    <div class="card card-custom p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0"><i class="bi bi-calendar2-event text-primary me-1"></i> Lịch thi đấu & Kết quả</h6>
+                            <span class="small text-muted">Bấm để nhập tỷ số</span>
+                        </div>
+                        <div id="matchesList"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL CẬP NHẬT TỶ SỐ TRẬN ĐẤU -->
+    <div class="modal fade" id="scoreModal" tabindex="-1">
+        <div class="modal-dialog">
+            <form class="modal-content" onsubmit="saveMatchScore(event)">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Cập nhật kết quả trận đấu</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <input type="hidden" id="editMatchId">
+                    <p class="small text-muted mb-3" id="matchInfoText"></p>
+                    <div class="row align-items-center justify-content-center g-2">
+                        <div class="col-5">
+                            <div class="fw-bold mb-2" id="labelTeamA">Đội A</div>
+                            <input type="number" id="inputScoreA" class="form-control form-control-lg text-center fw-bold" min="0" value="0" required>
+                        </div>
+                        <div class="col-2 fw-bold fs-4">-</div>
+                        <div class="col-5">
+                            <div class="fw-bold mb-2" id="labelTeamB">Đội B</div>
+                            <input type="number" id="inputScoreB" class="form-control form-control-lg text-center fw-bold" min="0" value="0" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-pitch">Lưu kết quả & Tính điểm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL THÊM ĐỘI BÓNG -->
+    <div class="modal fade" id="addTeamModal" tabindex="-1">
+        <div class="modal-dialog">
+            <form class="modal-content" onsubmit="addTeam(event)">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Đăng ký đội bóng tham gia</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Tên đội bóng</label>
+                        <input type="text" id="teamName" class="form-control" placeholder="VD: FC Liên Quân" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Tên đội trưởng</label>
+                        <input type="text" id="teamCaptain" class="form-control" placeholder="VD: Anh Đức" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold">Số điện thoại liên hệ</label>
+                        <input type="text" id="teamPhone" class="form-control" placeholder="0905xxxxxx" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-pitch">Thêm đội bóng</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL TẠO / CẤU HÌNH GIẢI ĐẤU -->
+    <div class="modal fade" id="createTourModal" tabindex="-1">
+        <div class="modal-dialog">
+            <form class="modal-content" onsubmit="updateTourInfo(event)">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Tạo / Cập nhật thông tin Giải đấu</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Tên giải đấu</label>
+                        <input type="text" id="inputTourName" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Cơ cấu giải thưởng</label>
+                        <input type="text" id="inputTourPrize" class="form-control" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold">Trạng thái giải</label>
+                        <select id="inputTourStatus" class="form-select">
+                            <option value="Đang nhận đăng ký">Đang nhận đăng ký</option>
+                            <option value="Đang diễn ra">Đang diễn ra</option>
+                            <option value="Đã kết thúc">Đã kết thúc</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-pitch">Lưu thông tin giải</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/data.js"></script>
+    <script>
+        const scoreModal = new bootstrap.Modal(document.getElementById('scoreModal'));
+
+        function renderTournament() {
+            const db = getPitchData();
+            const tour = db.tournaments;
+
+            // Badge tồn kho
+            document.getElementById('sidebarAlertCount').innerText = db.products.filter(p => p.stock <= p.minStock).length;
+
+            // Render Banner
+            document.getElementById('tourTitle').innerText = tour.name;
+            document.getElementById('tourPrize').innerText = tour.prize;
+            document.getElementById('tourStatusBadge').innerText = tour.status;
+            document.getElementById('totalTeamsStat').innerText = tour.teams.length;
+            document.getElementById('totalMatchesStat').innerText = tour.matches.length;
+
+            // Gán sẵn vào form chỉnh sửa giải
+            document.getElementById('inputTourName').value = tour.name;
+            document.getElementById('inputTourPrize').value = tour.prize;
+            document.getElementById('inputTourStatus').value = tour.status;
+
+            // Sắp xếp bảng xếp hạng theo Điểm giảm dần
+            const sortedTeams = [...tour.teams].sort((a, b) => b.points - a.points);
+            const tbody = document.getElementById('standingsBody');
+            tbody.innerHTML = '';
+
+            sortedTeams.forEach((t, idx) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>
+                            <span class="badge ${idx === 0 ? 'bg-warning text-dark' : (idx === 1 ? 'bg-secondary' : 'bg-light text-dark border')}">
+                                #${idx + 1}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="fw-bold">${t.name}</div>
+                            <small class="text-muted"><i class="bi bi-person me-1"></i>${t.captain} (${t.phone})</small>
+                        </td>
+                        <td class="text-center">${t.played}</td>
+                        <td class="text-center">${t.won} - ${t.drawn} - ${t.lost}</td>
+                        <td class="text-center"><span class="fs-6 fw-bold text-success">${t.points}</span></td>
+                    </tr>
+                `;
+            });
+
+            // Render Lịch thi đấu & Kết quả
+            const mContainer = document.getElementById('matchesList');
+            mContainer.innerHTML = '';
+            tour.matches.forEach(m => {
+                mContainer.innerHTML += `
+                    <div class="border rounded-3 p-3 mb-2 bg-light bg-opacity-50">
+                        <div class="d-flex justify-content-between align-items-center small text-muted mb-2">
+                            <span class="fw-semibold text-primary">${m.round}</span>
+                            <span><i class="bi bi-clock me-1"></i>${m.time}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="fw-bold text-end" style="width: 38%;">${m.teamA}</div>
+                            <div class="text-center" style="width: 24%;">
+                                ${m.played 
+                                    ? `<span class="score-box">${m.scoreA} - ${m.scoreB}</span>` 
+                                    : `<span class="badge bg-secondary-subtle text-secondary">Chưa đá</span>`
+                                }
+                            </div>
+                            <div class="fw-bold text-start" style="width: 38%;">${m.teamB}</div>
+                        </div>
+                        <div class="text-end mt-2 pt-2 border-top">
+                            <button class="btn btn-sm btn-outline-success py-0 px-2" onclick="openScoreModal('${m.id}')">
+                                <i class="bi bi-pencil-square me-1"></i>Cập nhật tỷ số
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function openScoreModal(matchId) {
+            const db = getPitchData();
+            const m = db.tournaments.matches.find(x => x.id === matchId);
+            if (!m) return;
+
+            document.getElementById('editMatchId').value = m.id;
+            document.getElementById('matchInfoText').innerText = `${m.round} • ${m.time}`;
+            document.getElementById('labelTeamA').innerText = m.teamA;
+            document.getElementById('labelTeamB').innerText = m.teamB;
+            document.getElementById('inputScoreA').value = m.scoreA !== null ? m.scoreA : 0;
+            document.getElementById('inputScoreB').value = m.scoreB !== null ? m.scoreB : 0;
+            scoreModal.show();
+        }
+
+        function saveMatchScore(e) {
+            e.preventDefault();
+            const db = getPitchData();
+            const matchId = document.getElementById('editMatchId').value;
+            const sA = Number(document.getElementById('inputScoreA').value);
+            const sB = Number(document.getElementById('inputScoreB').value);
+
+            const m = db.tournaments.matches.find(x => x.id === matchId);
+            if (!m) return;
+
+            // Nếu trận này chưa tính điểm trước đó thì cộng vào BXH
+            if (!m.played) {
+                const teamA = db.tournaments.teams.find(t => t.name === m.teamA);
+                const teamB = db.tournaments.teams.find(t => t.name === m.teamB);
+                if (teamA && teamB) {
+                    teamA.played++; teamB.played++;
+                    if (sA > sB) { teamA.won++; teamA.points += 3; teamB.lost++; }
+                    else if (sA < sB) { teamB.won++; teamB.points += 3; teamA.lost++; }
+                    else { teamA.drawn++; teamB.drawn++; teamA.points += 1; teamB.points += 1; }
+                }
+            }
+
+            m.scoreA = sA;
+            m.scoreB = sB;
+            m.played = true;
+
+            savePitchData(db);
+            scoreModal.hide();
+            renderTournament();
+        }
+
+        function addTeam(e) {
+            e.preventDefault();
+            const db = getPitchData();
+            db.tournaments.teams.push({
+                id: 'T' + Date.now().toString().slice(-3),
+                name: document.getElementById('teamName').value,
+                captain: document.getElementById('teamCaptain').value,
+                phone: document.getElementById('teamPhone').value,
+                played: 0, won: 0, drawn: 0, lost: 0, gd: "0", points: 0
+            });
+            savePitchData(db);
+            bootstrap.Modal.getInstance(document.getElementById('addTeamModal')).hide();
+            e.target.reset();
+            renderTournament();
+        }
+
+        function updateTourInfo(e) {
+            e.preventDefault();
+            const db = getPitchData();
+            db.tournaments.name = document.getElementById('inputTourName').value;
+            db.tournaments.prize = document.getElementById('inputTourPrize').value;
+            db.tournaments.status = document.getElementById('inputTourStatus').value;
+            savePitchData(db);
+            bootstrap.Modal.getInstance(document.getElementById('createTourModal')).hide();
+            renderTournament();
+        }
+
+        renderTournament();
+    </script>
+</body>
+</html>

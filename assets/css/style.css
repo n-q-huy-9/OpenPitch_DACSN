@@ -1,0 +1,99 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+    --pitch-green: #16A34A;
+    --pitch-green-hover: #15803D;
+    --sidebar-bg: #0F172A;
+    --body-bg: #F8FAFC;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: var(--body-bg);
+    color: #1E293B;
+    overflow-x: hidden;
+}
+
+/* --- SIDEBAR TRÁI --- */
+.sidebar {
+    width: 260px;
+    min-height: 100vh;
+    background-color: var(--sidebar-bg);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+}
+
+.sidebar .nav-link {
+    color: #94A3B8;
+    font-weight: 500;
+    padding: 12px 18px;
+    border-radius: 10px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s ease;
+}
+
+.sidebar .nav-link i {
+    font-size: 1.2rem;
+}
+
+.sidebar .nav-link:hover {
+    color: #FFFFFF;
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.sidebar .nav-link.active {
+    color: #FFFFFF;
+    background-color: var(--pitch-green);
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.35);
+}
+
+/* --- KHUNG NỘI DUNG CHÍNH --- */
+.main-content {
+    margin-left: 260px;
+    min-height: 100vh;
+}
+
+.topbar {
+    height: 70px;
+    background: #FFFFFF;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+/* --- THẺ KPI & DASHBOARD CARD --- */
+.card-custom {
+    border: none;
+    border-radius: 14px;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+    transition: transform 0.2s ease;
+}
+
+.card-custom:hover {
+    transform: translateY(-2px);
+}
+
+.icon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+}
+
+.btn-pitch {
+    background-color: var(--pitch-green);
+    color: white;
+    font-weight: 600;
+    border-radius: 8px;
+}
+
+.btn-pitch:hover {
+    background-color: var(--pitch-green-hover);
+    color: white;
+}

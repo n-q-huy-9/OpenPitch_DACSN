@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Kho Hàng - openPitch</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar d-flex flex-column p-3">
+        <a href="index.html" class="d-flex align-items-center gap-2 text-white text-decoration-none px-2 py-3 mb-3 border-bottom border-secondary border-opacity-25">
+            <div class="bg-success rounded-3 p-2 d-flex align-items-center justify-content-center">
+                <i class="bi bi-dribbble fs-4 text-white"></i>
+            </div>
+            <div>
+                <h5 class="mb-0 fw-bold">openPitch</h5>
+                <small class="text-secondary" style="font-size: 0.75rem;">Quản lý sân bóng phong trào</small>
+            </div>
+        </a>
+
+        <ul class="nav nav-pills flex-column mb-auto">
+            <li class="nav-item"><a href="index.html" class="nav-link"><i class="bi bi-bar-chart-line-fill"></i> Quản lý doanh thu</a></li>
+            <li class="nav-item"><a href="bookings.html" class="nav-link"><i class="bi bi-calendar2-week"></i> Quản lý lịch đặt sân</a></li>
+            <li class="nav-item"><a href="pitches.html" class="nav-link"><i class="bi bi-grid-1x2"></i> Quản lý sân bóng</a></li>
+            <li class="nav-item"><a href="pos-products.html" class="nav-link"><i class="bi bi-cup-straw"></i> Quản lý hàng hóa (POS)</a></li>
+            <li class="nav-item">
+                <a href="inventory.html" class="nav-link active d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-box-seam me-2"></i> Quản lý kho hàng</span>
+                    <span class="badge bg-danger rounded-pill" id="sidebarAlertCount">0</span>
+                </a>
+            </li>
+            <li class="nav-item"><a href="tournaments.html" class="nav-link"><i class="bi bi-trophy"></i> Quản lý giải đấu</a></li>
+        </ul>
+
+        <button onclick="resetDemoData()" class="btn btn-outline-secondary btn-sm mt-auto text-light border-secondary">
+            <i class="bi bi-arrow-counterclockwise me-1"></i> Khôi phục dữ liệu mẫu
+        </button>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <header class="topbar d-flex align-items-center justify-content-between px-4 sticky-top">
+            <div>
+                <h5 class="mb-0 fw-bold">Quản Lý Kho Hàng & Cảnh Báo Tồn Kho</h5>
+                <small class="text-muted">Theo dõi nhập hàng, xuất hàng, kiểm kê số lượng tồn và cảnh báo khi sắp hết</small>
+            </div>
+            <button class="btn btn-pitch btn-sm px-3 py-2" onclick="openStockModal('')">
+                <i class="bi bi-box-arrow-in-down me-1"></i> Lập phiếu Nhập / Xuất kho
+            </button>
+        </header>
+
+        <main class="p-4">
+            <!-- HÀNG 1: 3 THẺ THỐNG KÊ KHO -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="card card-custom p-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted small mb-1">Tổng danh mục mặt hàng</p>
+                                <h4 class="fw-bold mb-0" id="totalProductsCount">0 mặt hàng</h4>
+                            </div>
+                            <div class="icon-box bg-primary bg-opacity-10 text-primary"><i class="bi bi-boxes"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card card-custom p-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted small mb-1">Tổng giá trị vốn tồn kho</p>
+                                <h4 class="fw-bold mb-0 text-success" id="totalInventoryValue">0đ</h4>
+                            </div>
+                            <div class="icon-box bg-success bg-opacity-10 text-success"><i class="bi bi-wallet2"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card card-custom p-3 border-start border-danger border-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted small mb-1">Mặt hàng sắp hết (Cần nhập)</p>
+                                <h4 class="fw-bold mb-0 text-danger" id="lowStockCardCount">0 sản phẩm</h4>
+                            </div>
+                            <div class="icon-box bg-danger bg-opacity-10 text-danger"><i class="bi bi-exclamation-octagon-fill"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HÀNG 2: BẢNG TỒN KHO & LỊCH SỬ NHẬP XUẤT -->
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="card card-custom p-4">
+                        <h6 class="fw-bold mb-3">Danh sách Tồn kho hiện tại</h6>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle small mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Mã SP</th>
+                                        <th>Tên hàng hóa</th>
+                                        <th>Giá vốn / Giá bán</th>
+                                        <th>Tồn kho</th>
+                                        <th>Trạng thái cảnh báo</th>
+                                        <th class="text-end">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inventoryTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NHẬT KÝ NHẬP / XUẤT KHO -->
+                <div class="col-lg-4">
+                    <div class="card card-custom p-4">
+                        <h6 class="fw-bold mb-3"><i class="bi bi-clock-history me-1 text-secondary"></i> Lịch sử Nhập / Xuất kho</h6>
+                        <div id="inventoryLogsContainer" style="max-height: 420px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL NHẬP / XUẤT KHO -->
+    <div class="modal fade" id="stockModal" tabindex="-1">
+        <div class="modal-dialog">
+            <form class="modal-content" onsubmit="submitStockTransaction(event)">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Lập Phiếu Nhập / Xuất Kho</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Chọn sản phẩm</label>
+                        <select id="stockProdSelect" class="form-select" required></select>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Loại giao dịch kho</label>
+                            <select id="stockType" class="form-select">
+                                <option value="IMPORT">Nhập hàng mới vào kho (+)</option>
+                                <option value="EXPORT">Xuất kho / Xuất hủy (-)</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Số lượng</label>
+                            <input type="number" id="stockQty" class="form-control" value="24" min="1" required>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold">Ghi chú phiếu kho</label>
+                        <input type="text" id="stockNote" class="form-control" placeholder="VD: Nhập thêm 1 thùng từ đại lý...">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-pitch">Xác nhận cập nhật kho</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/data.js"></script>
+    <script>
+        const stockModal = new bootstrap.Modal(document.getElementById('stockModal'));
+
+        function renderInventory() {
+            const db = getPitchData();
+            const tbody = document.getElementById('inventoryTableBody');
+            const select = document.getElementById('stockProdSelect');
+            const logsBox = document.getElementById('inventoryLogsContainer');
+
+            tbody.innerHTML = '';
+            select.innerHTML = '';
+
+            let totalVal = 0;
+            let lowCount = 0;
+
+            // Sắp xếp ưu tiên mặt hàng sắp hết lên đầu bảng
+            const sorted = [...db.products].sort((a, b) => (a.stock - a.minStock) - (b.stock - b.minStock));
+
+            sorted.forEach(p => {
+                totalVal += p.stock * p.costPrice;
+                const isLow = p.stock <= p.minStock;
+                if (isLow) lowCount++;
+
+                select.innerHTML += `<option value="${p.id}">${p.name} (Đang tồn: ${p.stock} ${p.unit})</option>`;
+
+                tbody.innerHTML += `
+                    <tr class="${isLow ? 'table-danger bg-opacity-10' : ''}">
+                        <td class="fw-semibold text-secondary">${p.id}</td>
+                        <td>
+                            <div class="fw-bold">${p.name}</div>
+                            <span class="text-muted" style="font-size:0.75rem;">${p.category} • ĐVT: ${p.unit}</span>
+                        </td>
+                        <td>
+                            <div>Vốn: ${formatVND(p.costPrice)}</div>
+                            <small class="text-success fw-semibold">Bán: ${formatVND(p.sellPrice)}</small>
+                        </td>
+                        <td>
+                            <span class="fs-6 fw-bold ${isLow ? 'text-danger' : 'text-dark'}">${p.stock}</span> ${p.unit}
+                            <div class="text-muted" style="font-size: 0.7rem;">Tối thiểu: ${p.minStock}</div>
+                        </td>
+                        <td>
+                            ${isLow 
+                                ? `<span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>Sắp hết hàng!</span>` 
+                                : `<span class="badge bg-success-subtle text-success">Tồn kho an toàn</span>`
+                            }
+                        </td>
+                        <td class="text-end">
+                            <button class="btn btn-sm ${isLow ? 'btn-danger' : 'btn-outline-success'}" onclick="openStockModal('${p.id}')">
+                                <i class="bi bi-plus-circle me-1"></i>Nhập kho
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('totalProductsCount').innerText = db.products.length + ' mặt hàng';
+            document.getElementById('totalInventoryValue').innerText = formatVND(totalVal);
+            document.getElementById('lowStockCardCount').innerText = lowCount + ' sản phẩm';
+            document.getElementById('sidebarAlertCount').innerText = lowCount;
+
+            // Render nhật ký nhập xuất
+            logsBox.innerHTML = '';
+            db.inventoryLogs.forEach(log => {
+                const isImp = log.type === 'IMPORT';
+                logsBox.innerHTML += `
+                    <div class="border-bottom py-2 small">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge ${isImp ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning'}">
+                                ${isImp ? '+ Nhập kho' : '- Xuất kho'}: ${log.qty}
+                            </span>
+                            <span class="text-muted" style="font-size: 0.72rem;">${log.time}</span>
+                        </div>
+                        <div class="fw-semibold mt-1">${log.productName}</div>
+                        <div class="text-muted" style="font-size: 0.75rem;">${log.note}</div>
+                    </div>
+                `;
+            });
+        }
+
+        function openStockModal(prodId) {
+            if (prodId) {
+                document.getElementById('stockProdSelect').value = prodId;
+            }
+            document.getElementById('stockType').value = 'IMPORT';
+            document.getElementById('stockQty').value = 24;
+            stockModal.show();
+        }
+
+        function submitStockTransaction(e) {
+            e.preventDefault();
+            const db = getPitchData();
+            const prodId = document.getElementById('stockProdSelect').value;
+            const type = document.getElementById('stockType').value;
+            const qty = Number(document.getElementById('stockQty').value);
+            const note = document.getElementById('stockNote').value || (type === 'IMPORT' ? 'Nhập bổ sung hàng hóa' : 'Xuất kho định kỳ');
+
+            const prod = db.products.find(p => p.id === prodId);
+            if (!prod) return;
+
+            if (type === 'EXPORT' && prod.stock < qty) {
+                alert('Số lượng xuất vượt quá số lượng đang tồn trong kho!');
+                return;
+            }
+
+            prod.stock = type === 'IMPORT' ? prod.stock + qty : prod.stock - qty;
+
+            db.inventoryLogs.unshift({
+                id: (type === 'IMPORT' ? 'NK' : 'XK') + Math.floor(Math.random() * 900 + 100),
+                time: new Date().toLocaleString('vi-VN'),
+                productName: prod.name,
+                type,
+                qty,
+                note
+            });
+
+            savePitchData(db);
+            stockModal.hide();
+            document.getElementById('stockNote').value = '';
+            renderInventory();
+        }
+
+        renderInventory();
+    </script>
+</body>
+</html>
