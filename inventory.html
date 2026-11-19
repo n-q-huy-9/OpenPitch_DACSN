@@ -36,17 +36,17 @@
             <li class="nav-item"><a href="tournaments.html" class="nav-link"><i class="bi bi-trophy"></i> Quản lý giải đấu</a></li>
         </ul>
 
-        <button onclick="resetDemoData()" class="btn btn-outline-secondary btn-sm mt-auto text-light border-secondary">
+        <!-- <button onclick="resetDemoData()" class="btn btn-outline-secondary btn-sm mt-auto text-light border-secondary">
             <i class="bi bi-arrow-counterclockwise me-1"></i> Khôi phục dữ liệu mẫu
-        </button>
+        </button> -->
     </aside>
 
     <!-- MAIN CONTENT -->
     <div class="main-content">
         <header class="topbar d-flex align-items-center justify-content-between px-4 sticky-top">
             <div>
-                <h5 class="mb-0 fw-bold">Quản Lý Kho Hàng & Cảnh Báo Tồn Kho</h5>
-                <small class="text-muted">Theo dõi nhập hàng, xuất hàng, kiểm kê số lượng tồn và cảnh báo khi sắp hết</small>
+                <h5 class="mb-0 fw-bold">Quản Lý Kho Hàng &amp; Cảnh Báo Tồn Kho</h5>
+                <small class="text-muted">Theo dõi nhập hàng, xuất hàng, kiểm kê số lượng tồn và đồng bộ chi phí vào Sổ quỹ</small>
             </div>
             <button class="btn btn-pitch btn-sm px-3 py-2" onclick="openStockModal('')">
                 <i class="bi bi-box-arrow-in-down me-1"></i> Lập phiếu Nhập / Xuất kho
@@ -118,7 +118,7 @@
                 <div class="col-lg-4">
                     <div class="card card-custom p-4">
                         <h6 class="fw-bold mb-3"><i class="bi bi-clock-history me-1 text-secondary"></i> Lịch sử Nhập / Xuất kho</h6>
-                        <div id="inventoryLogsContainer" style="max-height: 420px; overflow-y: auto;"></div>
+                        <div id="inventoryLogsContainer" style="max-height: 450px; overflow-y: auto;"></div>
                     </div>
                 </div>
             </div>
@@ -134,23 +134,41 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold">Chọn sản phẩm</label>
-                        <select id="stockProdSelect" class="form-select" required></select>
+                    <div class="row g-2 mb-3">
+                        <div class="col-7">
+                            <label class="form-label small fw-semibold">Chọn sản phẩm</label>
+                            <select id="stockProdSelect" class="form-select" onchange="syncModalProductCost()" required></select>
+                        </div>
+                        <div class="col-5">
+                            <label class="form-label small fw-semibold">Ngày thực hiện</label>
+                            <input type="date" id="stockDate" class="form-control" required>
+                        </div>
                     </div>
-                    <div class="row mb-3">
+
+                    <div class="row g-2 mb-3">
                         <div class="col-6">
                             <label class="form-label small fw-semibold">Loại giao dịch kho</label>
-                            <select id="stockType" class="form-select">
+                            <select id="stockType" class="form-select" onchange="toggleCostSection()">
                                 <option value="IMPORT">Nhập hàng mới vào kho (+)</option>
                                 <option value="EXPORT">Xuất kho / Xuất hủy (-)</option>
                             </select>
                         </div>
                         <div class="col-6">
                             <label class="form-label small fw-semibold">Số lượng</label>
-                            <input type="number" id="stockQty" class="form-control" value="24" min="1" required>
+                            <input type="number" id="stockQty" class="form-control" value="24" min="1" oninput="updateImportPreview()" required>
                         </div>
                     </div>
+
+                    <!-- PHẦN GIÁ VỐN & THÀNH TIỀN NHẬP KHO -->
+                    <div id="importCostSection" class="mb-3">
+                        <label class="form-label small fw-semibold">Đơn giá nhập vốn (VNĐ / ĐVT)</label>
+                        <input type="number" id="stockCostPrice" class="form-control mb-2" min="0" step="500" oninput="updateImportPreview()" required>
+                        <div class="alert alert-danger py-2 px-3 small d-flex justify-content-between align-items-center mb-0">
+                            <span>Tổng chi tiền nhập hàng (trừ Sổ quỹ):</span>
+                            <strong class="fs-6" id="importTotalPreview">0đ</strong>
+                        </div>
+                    </div>
+
                     <div class="mb-2">
                         <label class="form-label small fw-semibold">Ghi chú phiếu kho</label>
                         <input type="text" id="stockNote" class="form-control" placeholder="VD: Nhập thêm 1 thùng từ đại lý...">
@@ -185,11 +203,11 @@
             const sorted = [...db.products].sort((a, b) => (a.stock - a.minStock) - (b.stock - b.minStock));
 
             sorted.forEach(p => {
-                totalVal += p.stock * p.costPrice;
+                totalVal += Number(p.stock) * Number(p.costPrice);
                 const isLow = p.stock <= p.minStock;
                 if (isLow) lowCount++;
 
-                select.innerHTML += `<option value="${p.id}">${p.name} (Đang tồn: ${p.stock} ${p.unit})</option>`;
+                select.innerHTML += `<option value="${p.id}">${p.name} (Tồn: ${p.stock} ${p.unit})</option>`;
 
                 tbody.innerHTML += `
                     <tr class="${isLow ? 'table-danger bg-opacity-10' : ''}">
@@ -207,8 +225,8 @@
                             <div class="text-muted" style="font-size: 0.7rem;">Tối thiểu: ${p.minStock}</div>
                         </td>
                         <td>
-                            ${isLow 
-                                ? `<span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>Sắp hết hàng!</span>` 
+                            ${isLow
+                                ? `<span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>Sắp hết hàng!</span>`
                                 : `<span class="badge bg-success-subtle text-success">Tồn kho an toàn</span>`
                             }
                         </td>
@@ -226,10 +244,17 @@
             document.getElementById('lowStockCardCount').innerText = lowCount + ' sản phẩm';
             document.getElementById('sidebarAlertCount').innerText = lowCount;
 
-            // Render nhật ký nhập xuất
+            // Render nhật ký nhập xuất kèm chi phí nhập kho
             logsBox.innerHTML = '';
+            if (db.inventoryLogs.length === 0) {
+                logsBox.innerHTML = `<div class="text-center text-muted py-4 small">Chưa có lịch sử nhập/xuất kho</div>`;
+                return;
+            }
+
             db.inventoryLogs.forEach(log => {
                 const isImp = log.type === 'IMPORT';
+                const impCost = isImp ? getImportLogCost(db, log) : 0;
+
                 logsBox.innerHTML += `
                     <div class="border-bottom py-2 small">
                         <div class="d-flex justify-content-between align-items-center">
@@ -238,19 +263,48 @@
                             </span>
                             <span class="text-muted" style="font-size: 0.72rem;">${log.time}</span>
                         </div>
-                        <div class="fw-semibold mt-1">${log.productName}</div>
+                        <div class="d-flex justify-content-between align-items-center mt-1">
+                            <div class="fw-semibold">${log.productName}</div>
+                            ${isImp && impCost > 0 ? `<span class="fw-bold text-danger">-${formatVND(impCost)}</span>` : ''}
+                        </div>
                         <div class="text-muted" style="font-size: 0.75rem;">${log.note}</div>
                     </div>
                 `;
             });
         }
 
+        function syncModalProductCost() {
+            const db = getPitchData();
+            const prodId = document.getElementById('stockProdSelect').value;
+            const prod = db.products.find(p => p.id === prodId);
+            if (prod) {
+                document.getElementById('stockCostPrice').value = prod.costPrice;
+            }
+            updateImportPreview();
+        }
+
+        function toggleCostSection() {
+            const isImport = document.getElementById('stockType').value === 'IMPORT';
+            document.getElementById('importCostSection').classList.toggle('d-none', !isImport);
+            document.getElementById('stockCostPrice').required = isImport;
+            updateImportPreview();
+        }
+
+        function updateImportPreview() {
+            const qty = Number(document.getElementById('stockQty').value) || 0;
+            const cost = Number(document.getElementById('stockCostPrice').value) || 0;
+            document.getElementById('importTotalPreview').innerText = `-${formatVND(qty * cost)}`;
+        }
+
         function openStockModal(prodId) {
             if (prodId) {
                 document.getElementById('stockProdSelect').value = prodId;
             }
+            document.getElementById('stockDate').value = getTodayISO();
             document.getElementById('stockType').value = 'IMPORT';
             document.getElementById('stockQty').value = 24;
+            syncModalProductCost();
+            toggleCostSection();
             stockModal.show();
         }
 
@@ -258,9 +312,10 @@
             e.preventDefault();
             const db = getPitchData();
             const prodId = document.getElementById('stockProdSelect').value;
+            const date = document.getElementById('stockDate').value || getTodayISO();
             const type = document.getElementById('stockType').value;
             const qty = Number(document.getElementById('stockQty').value);
-            const note = document.getElementById('stockNote').value || (type === 'IMPORT' ? 'Nhập bổ sung hàng hóa' : 'Xuất kho định kỳ');
+            const note = document.getElementById('stockNote').value.trim() || (type === 'IMPORT' ? 'Nhập bổ sung hàng hóa' : 'Xuất kho định kỳ');
 
             const prod = db.products.find(p => p.id === prodId);
             if (!prod) return;
@@ -270,15 +325,26 @@
                 return;
             }
 
-            prod.stock = type === 'IMPORT' ? prod.stock + qty : prod.stock - qty;
+            let unitCost = Number(prod.costPrice);
+            if (type === 'IMPORT') {
+                unitCost = Number(document.getElementById('stockCostPrice').value) || 0;
+                prod.costPrice = unitCost; // Cập nhật giá vốn mới nhất cho sản phẩm
+                prod.stock += qty;
+            } else {
+                prod.stock -= qty;
+            }
+
+            const nowTime = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 
             db.inventoryLogs.unshift({
-                id: (type === 'IMPORT' ? 'NK' : 'XK') + Math.floor(Math.random() * 900 + 100),
-                time: new Date().toLocaleString('vi-VN'),
+                id: (type === 'IMPORT' ? 'NK' : 'XK') + Date.now().toString().slice(-3),
+                date: date,
+                time: `${date} ${nowTime}`,
                 productName: prod.name,
-                type,
-                qty,
-                note
+                type: type,
+                qty: qty,
+                costPrice: type === 'IMPORT' ? unitCost : undefined,
+                note: note
             });
 
             savePitchData(db);

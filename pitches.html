@@ -7,6 +7,22 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .pitch-card {
+            border-radius: 14px;
+            border: 1px solid #E2E8F0;
+            border-top: 4px solid #16A34A;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .pitch-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+        }
+        .pitch-card.maintenance {
+            border-top-color: #94A3B8;
+            background-color: #F8FAFC;
+        }
+    </style>
 </head>
 <body>
 
@@ -30,15 +46,15 @@
             <li class="nav-item">
                 <a href="inventory.html" class="nav-link d-flex justify-content-between align-items-center">
                     <span><i class="bi bi-box-seam me-2"></i> Quản lý kho hàng</span>
-                    <span class="badge bg-danger rounded-pill">3</span>
+                    <span class="badge bg-danger rounded-pill" id="lowStockBadge">0</span>
                 </a>
             </li>
             <li class="nav-item"><a href="tournaments.html" class="nav-link"><i class="bi bi-trophy"></i> Quản lý giải đấu</a></li>
         </ul>
 
-        <button onclick="resetDemoData()" class="btn btn-outline-secondary btn-sm mt-auto text-light border-secondary">
+        <!-- <button onclick="resetDemoData()" class="btn btn-outline-secondary btn-sm mt-auto text-light border-secondary">
             <i class="bi bi-arrow-counterclockwise me-1"></i> Khôi phục dữ liệu mẫu
-        </button>
+        </button> -->
     </aside>
 
     <!-- MAIN CONTENT -->
@@ -46,70 +62,82 @@
         <header class="topbar d-flex align-items-center justify-content-between px-4 sticky-top">
             <div>
                 <h5 class="mb-0 fw-bold">Quản lý Danh sách Sân bóng</h5>
-                <small class="text-muted">Thiết lập thông tin sân, bảng giá thuê theo khung giờ và trạng thái vận hành</small>
+                <small class="text-muted">Thiết lập thông tin sân, bảng giá thuê theo giờ và trạng thái vận hành thực tế</small>
             </div>
-            <button class="btn btn-pitch btn-sm px-3 py-2" onclick="openAddPitchModal()">
+            <button class="btn btn-pitch btn-sm px-3 py-2" onclick="openPitchModal()">
                 <i class="bi bi-plus-lg me-1"></i> Thêm sân bóng mới
             </button>
         </header>
 
         <main class="p-4">
-            <!-- BỘ LỌC NHANH -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-outline-secondary btn-sm active" onclick="filterPitches('all', this)">Tất cả sân</button>
-                    <button type="button" class="btn btn-outline-success btn-sm" onclick="filterPitches('active', this)">Đang hoạt động</button>
-                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="filterPitches('maintenance', this)">Đang bảo trì</button>
+            <!-- BỘ LỌC TRẠNG THÁI -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+                <div class="btn-group btn-group-sm" role="group">
+                    <button class="btn btn-outline-secondary active" onclick="filterPitches('all', this)">Tất cả sân</button>
+                    <button class="btn btn-outline-secondary" onclick="filterPitches('active', this)">Đang hoạt động</button>
+                    <button class="btn btn-outline-secondary" onclick="filterPitches('maintenance', this)">Đang bảo trì</button>
                 </div>
-                <span class="text-muted small">Mẹo: Gạt công tắc bảo trì sẽ tự động khóa sân đó trên màn hình Lịch đặt sân.</span>
+                <span class="small text-muted">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Mẹo: Sửa giá sân sẽ tự động cập nhật lại doanh thu &amp; biểu đồ; gạt công tắc bảo trì sẽ tự khóa sân bên Lịch đặt sân.
+                </span>
             </div>
 
-            <!-- DANH SÁCH THẺ SÂN BÓNG (RENDER BẰNG JS) -->
-            <div class="row g-4" id="pitchListContainer"></div>
+            <!-- DANH SÁCH THẺ SÂN -->
+            <div class="row g-3" id="pitchGrid"></div>
         </main>
     </div>
 
     <!-- MODAL THÊM / SỬA SÂN BÓNG -->
     <div class="modal fade" id="pitchModal" tabindex="-1">
         <div class="modal-dialog">
-            <form class="modal-content" id="pitchForm" onsubmit="savePitch(event)">
+            <form class="modal-content" onsubmit="savePitch(event)">
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold" id="pitchModalTitle">Thêm sân bóng mới</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="editPitchId">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold small">Tên sân bóng</label>
-                        <input type="text" id="pitchName" class="form-control" placeholder="VD: Sân 5D" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold small">Loại sân</label>
-                        <select id="pitchType" class="form-select">
-                            <option value="Sân 5 người">Sân 5 người</option>
-                            <option value="Sân 7 người">Sân 7 người</option>
-                        </select>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <label class="form-label fw-semibold small">Giá giờ thường (VNĐ/ca)</label>
-                            <input type="number" id="normalPrice" class="form-control" value="250000" step="10000" required>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-7">
+                            <label class="form-label small fw-semibold">Tên sân bóng</label>
+                            <input type="text" id="pitchName" class="form-control" placeholder="VD: Sân 5D (Cỏ mới)" required>
                         </div>
-                        <div class="col-6">
-                            <label class="form-label fw-semibold small">Giá giờ vàng (16h30-21h)</label>
-                            <input type="number" id="peakPrice" class="form-control" value="350000" step="10000" required>
+                        <div class="col-5">
+                            <label class="form-label small fw-semibold">Loại sân</label>
+                            <select id="pitchType" class="form-select">
+                                <option value="Sân 5 người">Sân 5 người</option>
+                                <option value="Sân 7 người">Sân 7 người</option>
+                                <option value="Sân 11 người">Sân 11 người</option>
+                            </select>
                         </div>
                     </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Giá giờ thường (VNĐ / giờ)</label>
+                            <input type="number" id="pitchNormalPrice" class="form-control" step="10000" min="0" value="250000" required>
+                            <div class="form-text">Áp dụng 04:00 - 17:00 &amp; sau 21:00</div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Giá giờ vàng (VNĐ / giờ)</label>
+                            <input type="number" id="pitchPeakPrice" class="form-control" step="10000" min="0" value="350000" required>
+                            <div class="form-text">Áp dụng khung 17:00 - 21:00</div>
+                        </div>
+                    </div>
+
                     <div class="mb-3">
-                        <label class="form-label fw-semibold small">Trạng thái hoạt động</label>
+                        <label class="form-label small fw-semibold">Trạng thái vận hành</label>
                         <select id="pitchStatus" class="form-select">
-                            <option value="active">Đang hoạt động tốt</option>
-                            <option value="maintenance">Đang tạm ngưng bảo trì</option>
+                            <option value="active">Đang hoạt động (Mở nhận lịch)</option>
+                            <option value="maintenance">Đang bảo trì (Tạm khóa lịch)</option>
                         </select>
                     </div>
+
                     <div class="mb-2">
-                        <label class="form-label fw-semibold small">Ghi chú tình trạng sân</label>
-                        <input type="text" id="pitchNote" class="form-control" placeholder="VD: Đèn chiếu sáng mới, cỏ tốt...">
+                        <label class="form-label small fw-semibold">Ghi chú tình trạng mặt cỏ / cơ sở vật chất</label>
+                        <input type="text" id="pitchNote" class="form-control" placeholder="VD: Đèn LED mới, lưới khung thành tốt">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -128,51 +156,75 @@
 
         function renderPitches() {
             const db = getPitchData();
-            const container = document.getElementById('pitchListContainer');
-            container.innerHTML = '';
+            const today = getTodayISO();
 
+            // Cập nhật số đỏ cảnh báo tồn kho trên Sidebar
+            const lowCount = db.products.filter(p => p.stock <= p.minStock).length;
+            document.getElementById('lowStockBadge').innerText = lowCount;
+
+            const grid = document.getElementById('pitchGrid');
             const filtered = db.pitches.filter(p => currentFilter === 'all' || p.status === currentFilter);
 
-            filtered.forEach(p => {
-                const isMaint = p.status === 'maintenance';
-                container.innerHTML += `
-                    <div class="col-md-6 col-lg-4">
-                        <div class="card card-custom h-100 p-3 border-top border-4 ${isMaint ? 'border-danger' : 'border-success'}">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div>
-                                    <span class="badge ${p.type.includes('7') ? 'bg-primary' : 'bg-secondary'} mb-1">${p.type}</span>
-                                    <h5 class="fw-bold mb-0">${p.name}</h5>
-                                </div>
-                                <span class="badge ${isMaint ? 'bg-danger-subtle text-danger' : 'bg-success-subtle text-success'} px-2 py-1">
-                                    <i class="bi ${isMaint ? 'bi-tools' : 'bi-check-circle-fill'} me-1"></i>
-                                    ${isMaint ? 'Đang bảo trì' : 'Hoạt động'}
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-12">
+                        <div class="card card-custom p-5 text-center text-muted">
+                            Không có sân bóng nào trong mục lọc này.
+                        </div>
+                    </div>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(p => {
+                const isActive = p.status === 'active';
+                const is7 = p.type.includes('7') || p.type.includes('11');
+                const todayCount = db.bookings.filter(b => b.pitchId === p.id && b.date === today).length;
+
+                return `
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card pitch-card ${isActive ? '' : 'maintenance'} p-3 h-100 d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge ${is7 ? 'bg-primary' : 'bg-secondary'}">${p.type}</span>
+                                <span class="badge ${isActive ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary'}">
+                                    <i class="bi ${isActive ? 'bi-check-circle-fill' : 'bi-tools'} me-1"></i>
+                                    ${isActive ? 'Hoạt động' : 'Bảo trì'}
                                 </span>
                             </div>
 
-                            <p class="text-muted small mb-3"><i class="bi bi-info-circle me-1"></i> ${p.note || 'Không có ghi chú'}</p>
+                            <h5 class="fw-bold mb-1">${p.name}</h5>
+                            <p class="small text-muted mb-3">
+                                <i class="bi bi-info-circle me-1"></i>${p.note || 'Không có ghi chú'}
+                            </p>
 
-                            <div class="bg-light rounded-3 p-3 mb-3">
-                                <div class="d-flex justify-content-between small mb-1">
+                            <div class="bg-light rounded-3 p-2 px-3 mb-3 small">
+                                <div class="d-flex justify-content-between mb-1">
                                     <span class="text-muted">Khung giờ thường:</span>
-                                    <span class="fw-bold">${formatVND(p.normalPrice)} / 90p</span>
+                                    <strong class="text-dark">${formatVND(p.normalPrice)} / giờ</strong>
                                 </div>
-                                <div class="d-flex justify-content-between small">
-                                    <span class="text-muted">Khung giờ vàng (16h30-21h):</span>
-                                    <span class="fw-bold text-success">${formatVND(p.peakPrice)} / 90p</span>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-muted">Khung giờ vàng (17:00 - 21:00):</span>
+                                    <strong class="text-success">${formatVND(p.peakPrice)} / giờ</strong>
+                                </div>
+                                <div class="d-flex justify-content-between pt-1 border-top">
+                                    <span class="text-muted">Lịch đặt hôm nay:</span>
+                                    <strong class="text-primary">${todayCount} ca</strong>
                                 </div>
                             </div>
 
-                            <div class="d-flex justify-content-between align-items-center mt-auto pt-2 border-top">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch" 
-                                        ${!isMaint ? 'checked' : ''} onchange="togglePitchStatus('${p.id}')">
-                                    <label class="form-check-label small">Mở nhận lịch</label>
+                            <div class="mt-auto d-flex justify-content-between align-items-center pt-2 border-top">
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input" type="checkbox" role="switch"
+                                        id="switch_${p.id}" ${isActive ? 'checked' : ''}
+                                        onchange="togglePitchStatus('${p.id}')">
+                                    <label class="form-check-label small" for="switch_${p.id}">
+                                        ${isActive ? 'Mở nhận lịch' : 'Đang khóa sân'}
+                                    </label>
                                 </div>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-outline-secondary" onclick="openEditPitchModal('${p.id}')">
+                                <div class="d-flex gap-1">
+                                    <button class="btn btn-outline-secondary btn-sm" title="Sửa thông tin & giá sân" onclick="openPitchModal('${p.id}')">
                                         <i class="bi bi-pencil-square"></i>
                                     </button>
-                                    <button class="btn btn-sm btn-outline-danger" onclick="deletePitch('${p.id}')">
+                                    <button class="btn btn-outline-danger btn-sm" title="Xóa sân" onclick="deletePitch('${p.id}')">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </div>
@@ -180,100 +232,95 @@
                         </div>
                     </div>
                 `;
-            });
-
-            if (!filtered.length) {
-                container.innerHTML = `
-                    <div class="col-12">
-                        <div class="alert alert-light border text-center py-5">
-                            <i class="bi bi-emoji-frown fs-3 d-block mb-2"></i>
-                            <h6 class="fw-bold mb-1">Chưa có sân nào phù hợp</h6>
-                            <p class="text-muted small mb-0">Thử đổi bộ lọc hoặc thêm sân mới để bắt đầu.</p>
-                        </div>
-                    </div>
-                `;
-            }
+            }).join('');
         }
 
-        function openAddPitchModal() {
-            document.getElementById('pitchForm').reset();
-            document.getElementById('editPitchId').value = '';
-            document.getElementById('pitchModalTitle').textContent = 'Thêm sân bóng mới';
-            pitchModal.show();
-        }
-
-        function openEditPitchModal(id) {
-            const db = getPitchData();
-            const pitch = db.pitches.find(p => p.id === id);
-            if (!pitch) return;
-
-            document.getElementById('editPitchId').value = pitch.id;
-            document.getElementById('pitchName').value = pitch.name;
-            document.getElementById('pitchType').value = pitch.type;
-            document.getElementById('normalPrice').value = pitch.normalPrice;
-            document.getElementById('peakPrice').value = pitch.peakPrice;
-            document.getElementById('pitchStatus').value = pitch.status;
-            document.getElementById('pitchNote').value = pitch.note || '';
-            document.getElementById('pitchModalTitle').textContent = 'Chỉnh sửa sân bóng';
-            pitchModal.show();
-        }
-
-        function savePitch(event) {
-            event.preventDefault();
-            const db = getPitchData();
-            const id = document.getElementById('editPitchId').value;
-            const pitch = {
-                id: id || crypto.randomUUID(),
-                name: document.getElementById('pitchName').value.trim(),
-                type: document.getElementById('pitchType').value,
-                normalPrice: Number(document.getElementById('normalPrice').value),
-                peakPrice: Number(document.getElementById('peakPrice').value),
-                status: document.getElementById('pitchStatus').value,
-                note: document.getElementById('pitchNote').value.trim(),
-            };
-
-            if (!pitch.name) {
-                alert('Vui lòng nhập tên sân bóng.');
-                return;
-            }
-
-            if (id) {
-                const index = db.pitches.findIndex(p => p.id === id);
-                if (index !== -1) db.pitches[index] = pitch;
-            } else {
-                db.pitches.push(pitch);
-            }
-
-            savePitchData(db);
-            renderPitches();
-            pitchModal.hide();
-            document.getElementById('pitchForm').reset();
-        }
-
-        function deletePitch(id) {
-            const db = getPitchData();
-            db.pitches = db.pitches.filter(p => p.id !== id);
-            savePitchData(db);
+        function filterPitches(status, btn) {
+            currentFilter = status;
+            document.querySelectorAll('.btn-group .btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
             renderPitches();
         }
 
-        function togglePitchStatus(id) {
+        function togglePitchStatus(pitchId) {
             const db = getPitchData();
-            const pitch = db.pitches.find(p => p.id === id);
+            const pitch = db.pitches.find(p => p.id === pitchId);
             if (!pitch) return;
             pitch.status = pitch.status === 'active' ? 'maintenance' : 'active';
             savePitchData(db);
             renderPitches();
         }
 
-        function filterPitches(filter, btn) {
-            currentFilter = filter;
-            document.querySelectorAll('.btn-group .btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+        function openPitchModal(pitchId = '') {
+            const db = getPitchData();
+            if (pitchId) {
+                const p = db.pitches.find(item => item.id === pitchId);
+                if (!p) return;
+                document.getElementById('pitchModalTitle').innerText = `Cập nhật ${p.name}`;
+                document.getElementById('editPitchId').value = p.id;
+                document.getElementById('pitchName').value = p.name;
+                document.getElementById('pitchType').value = p.type;
+                document.getElementById('pitchNormalPrice').value = p.normalPrice;
+                document.getElementById('pitchPeakPrice').value = p.peakPrice;
+                document.getElementById('pitchStatus').value = p.status;
+                document.getElementById('pitchNote').value = p.note || '';
+            } else {
+                document.getElementById('pitchModalTitle').innerText = 'Thêm sân bóng mới';
+                document.getElementById('editPitchId').value = '';
+                document.getElementById('pitchName').value = '';
+                document.getElementById('pitchType').value = 'Sân 5 người';
+                document.getElementById('pitchNormalPrice').value = 250000;
+                document.getElementById('pitchPeakPrice').value = 350000;
+                document.getElementById('pitchStatus').value = 'active';
+                document.getElementById('pitchNote').value = '';
+            }
+            pitchModal.show();
+        }
+
+        function savePitch(e) {
+            e.preventDefault();
+            const db = getPitchData();
+            const editId = document.getElementById('editPitchId').value;
+
+            const pitchObj = {
+                id: editId || ('S' + Date.now().toString().slice(-3)),
+                name: document.getElementById('pitchName').value.trim(),
+                type: document.getElementById('pitchType').value,
+                normalPrice: Number(document.getElementById('pitchNormalPrice').value),
+                peakPrice: Number(document.getElementById('pitchPeakPrice').value),
+                status: document.getElementById('pitchStatus').value,
+                note: document.getElementById('pitchNote').value.trim()
+            };
+
+            if (editId) {
+                const idx = db.pitches.findIndex(p => p.id === editId);
+                if (idx !== -1) db.pitches[idx] = pitchObj;
+            } else {
+                db.pitches.push(pitchObj);
+            }
+
+            savePitchData(db);
+            pitchModal.hide();
             renderPitches();
         }
 
-        document.addEventListener('DOMContentLoaded', renderPitches);
+        function deletePitch(pitchId) {
+            const db = getPitchData();
+            const pitch = db.pitches.find(p => p.id === pitchId);
+            if (!pitch) return;
+
+            const hasBookings = db.bookings.some(b => b.pitchId === pitchId);
+            const msg = hasBookings
+                ? `Sân "${pitch.name}" đang có lịch đặt trong hệ thống. Bạn vẫn chắc chắn muốn xóa sân này?`
+                : `Bạn có chắc chắn muốn xóa "${pitch.name}"?`;
+
+            if (!confirm(msg)) return;
+            db.pitches = db.pitches.filter(p => p.id !== pitchId);
+            savePitchData(db);
+            renderPitches();
+        }
+
+        renderPitches();
     </script>
 </body>
 </html>

@@ -53,9 +53,9 @@
             <li class="nav-item"><a href="tournaments.html" class="nav-link"><i class="bi bi-trophy"></i> Quản lý giải đấu</a></li>
         </ul>
 
-        <button onclick="resetDemoData()" class="btn btn-outline-secondary btn-sm mt-auto text-light border-secondary">
+        <!-- <button onclick="resetDemoData()" class="btn btn-outline-secondary btn-sm mt-auto text-light border-secondary">
             <i class="bi bi-arrow-counterclockwise me-1"></i> Khôi phục dữ liệu mẫu
-        </button>
+        </button> -->
     </aside>
 
     <!-- MAIN CONTENT -->
@@ -96,13 +96,8 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label small fw-semibold">Khách hàng / Gắn vào sân đang đá:</label>
-                            <select id="posCustomerSelect" class="form-select form-select-sm">
-                                <option value="Khách mua lẻ tại quầy">Khách mua lẻ tại quầy</option>
-                                <option value="Sân 5A - Anh Tuấn (Ca 16:30)">Sân 5A - Anh Tuấn (Đang đá)</option>
-                                <option value="Sân 5B - FC Bình Minh (Ca 18:00)">Sân 5B - FC Bình Minh (Đang đá)</option>
-                                <option value="Sân 7A - Giải Tứ Hùng">Sân 7A - Giải Tứ Hùng</option>
-                            </select>
+                            <label class="form-label small fw-semibold">Khách hàng / Gắn vào sân đang đặt:</label>
+                            <select id="posCustomerSelect" class="form-select form-select-sm"></select>
                         </div>
 
                         <!-- Danh sách món đã chọn -->
@@ -185,6 +180,20 @@
         let currentCat = 'all';
         let cart = [];
 
+        // Tự động nạp danh sách các ca sân thật đang có trong bookings để gắn hóa đơn
+        function renderCustomerOptions() {
+            const db = getPitchData();
+            const select = document.getElementById('posCustomerSelect');
+            select.innerHTML = `<option value="">Khách mua lẻ tại quầy</option>`;
+
+            db.bookings.forEach(b => {
+                const pitch = db.pitches.find(p => p.id === b.pitchId);
+                const slot = db.timeSlots.find(s => s.id === b.slotId);
+                const label = `${pitch ? pitch.name : b.pitchId} - ${b.customer} (${slot ? slot.label : ''})`;
+                select.innerHTML += `<option value="${b.id}">${label}</option>`;
+            });
+        }
+
         function renderProducts() {
             const db = getPitchData();
             const grid = document.getElementById('productGrid');
@@ -213,12 +222,40 @@
                             <h6 class="fw-bold mb-2">${p.name}</h6>
                             <div class="mt-auto d-flex justify-content-between align-items-center pt-2 border-top">
                                 <span class="fw-bold text-success">${formatVND(p.sellPrice)}</span>
-                                <span class="btn btn-sm btn-outline-success py-0 px-2">+ Chọn</span>
+                                <div class="d-flex gap-1">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2"
+                                        onclick="event.stopPropagation(); editProductPrice('${p.id}')">
+                                        Sửa giá
+                                    </button>
+                                    <span class="btn btn-sm btn-outline-success py-0 px-2">+ Chọn</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 `;
             });
+        }
+
+        function editProductPrice(prodId) {
+            const db = getPitchData();
+            const prod = db.products.find(p => p.id === prodId);
+            if (!prod) return;
+
+            const input = prompt(`Nhập giá bán mới cho "${prod.name}" (VNĐ):`, prod.sellPrice);
+            if (input !== null && input.trim() !== '' && !isNaN(input) && Number(input) >= 0) {
+                prod.sellPrice = Number(input);
+                savePitchData(db);
+
+                // Cập nhật luôn giá nếu sản phẩm đang nằm sẵn trong giỏ hàng
+                const inCart = cart.find(c => c.id === prodId);
+                if (inCart) {
+                    inCart.price = prod.sellPrice;
+                    renderCart();
+                }
+
+                renderProducts();
+                alert('Đã cập nhật giá bán mới! Doanh thu & biểu đồ ở trang chủ sẽ tự động tính lại theo giá này.');
+            }
         }
 
         function filterCategory(cat, btn) {
@@ -250,8 +287,16 @@
         }
 
         function changeQty(prodId, delta) {
+            const db = getPitchData();
+            const prod = db.products.find(p => p.id === prodId);
             const item = cart.find(c => c.id === prodId);
             if (!item) return;
+
+            if (delta > 0 && prod && item.qty >= prod.stock) {
+                alert('Số lượng chọn vượt quá tồn kho hiện tại!');
+                return;
+            }
+
             item.qty += delta;
             if (item.qty <= 0) {
                 cart = cart.filter(c => c.id !== prodId);
@@ -302,10 +347,28 @@
                 return;
             }
             const db = getPitchData();
-            const customer = document.getElementById('posCustomerSelect').value;
+            const select = document.getElementById('posCustomerSelect');
+            const selectedBookingId = select.value || null;
+            const customerLabel = select.options[select.selectedIndex].text;
             const nowStr = new Date().toLocaleString('vi-VN');
 
-            // Trừ kho & Ghi lịch sử xuất kho
+            // 1. Lưu đơn bán hàng thật vào posOrders để Dashboard tự tính doanh thu, % và biểu đồ
+            db.posOrders.unshift({
+                id: 'POS' + Date.now().toString().slice(-3),
+                date: getTodayISO(),
+                customer: customerLabel,
+                bookingId: selectedBookingId,
+                dayIndex: getTodayDayIndex(),
+                paid: true,
+                time: nowStr,
+                items: cart.map(item => ({
+                    productId: item.id,
+                    qty: item.qty,
+                    unitPrice: item.price
+                }))
+            });
+
+            // 2. Trừ kho & Ghi lịch sử xuất kho
             cart.forEach(item => {
                 const prod = db.products.find(p => p.id === item.id);
                 if (prod) {
@@ -316,13 +379,13 @@
                         productName: prod.name,
                         type: 'EXPORT',
                         qty: item.qty,
-                        note: 'Bán hàng POS: ' + customer
+                        note: 'Bán hàng POS: ' + customerLabel
                     });
                 }
             });
 
             savePitchData(db);
-            alert('Đã thanh toán hóa đơn và tự động trừ số lượng tồn kho thành công!');
+            alert('Đã thanh toán hóa đơn! Tồn kho, Doanh thu và Biểu đồ đã tự động cập nhật.');
             clearCart();
             renderProducts();
         }
@@ -347,6 +410,7 @@
             renderProducts();
         }
 
+        renderCustomerOptions();
         renderProducts();
         renderCart();
     </script>

@@ -8,20 +8,178 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/style.css">
     <style>
-        .tournament-banner {
-            background: linear-gradient(135deg, #0F172A 0%, #16A34A 100%);
+        .hero-tournament {
+            background: linear-gradient(135deg, #064E3B 0%, #15803D 60%, #16A34A 100%);
             border-radius: 16px;
-            color: white;
-        }
-        .score-box {
-            display: inline-block;
-            min-width: 34px;
-            padding: 4px 8px;
-            border-radius: 6px;
-            background: #0F172A;
             color: #fff;
-            font-weight: 700;
+            position: relative;
+        }
+        /* ===== NÚT CHẤM THAN (!) THỂ LỆ KIỂU GAME ===== */
+        .btn-rules-game {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            background: rgba(15, 23, 42, 0.35);
+            color: #fff;
+            font-weight: 800;
+            font-size: 1rem;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 5;
+        }
+        .btn-rules-game:hover {
+            background: #FACC15;
+            border-color: #FEF08A;
+            color: #0F172A;
+            transform: scale(1.12);
+            box-shadow: 0 0 14px rgba(250, 204, 21, 0.75);
+        }
+        /* ===== SƠ ĐỒ HẠT GIỐNG KIỂU CHAMPIONS LEAGUE (C1) ===== */
+        .ucl-arena {
+            background: radial-gradient(circle at 50% 45%, #102A71 0%, #071540 55%, #040B24 100%);
+            border-radius: 18px;
+            padding: 28px 20px;
+            color: #fff;
+            overflow-x: auto;
+            position: relative;
+            border: 1px solid rgba(56, 189, 248, 0.25);
+        }
+        .ucl-header-title {
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 800;
+            background: linear-gradient(90deg, #E0F2FE, #38BDF8, #FDE047);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .ucl-bracket-wrapper {
+            display: flex;
+            align-items: stretch;
+            justify-content: center;
+            gap: 18px;
+            min-width: 980px;
+            padding: 12px 4px;
+        }
+        .ucl-side {
+            display: flex;
+            gap: 18px;
+            flex: 1;
+        }
+        .ucl-side.right-side {
+            flex-direction: row-reverse;
+        }
+        .ucl-round-col {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            flex: 1;
+            min-width: 175px;
+            gap: 12px;
+        }
+        .ucl-round-label {
             text-align: center;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #7DD3FC;
+            margin-bottom: 6px;
+        }
+        .ucl-match-box {
+            background: rgba(15, 23, 42, 0.78);
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+        }
+        .ucl-match-box:hover {
+            border-color: #38BDF8;
+            transform: translateY(-2px);
+            box-shadow: 0 0 16px rgba(56, 189, 248, 0.45);
+        }
+        .ucl-match-box.is-bye {
+            border-color: rgba(250, 204, 21, 0.5);
+            background: rgba(30, 41, 59, 0.75);
+        }
+        .ucl-team-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 7px 10px;
+            font-size: 0.8rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .ucl-team-row:last-child {
+            border-bottom: none;
+        }
+        .ucl-team-row.winner {
+            background: rgba(14, 165, 233, 0.25);
+            font-weight: 700;
+            color: #F8FAFC;
+        }
+        .ucl-team-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 125px;
+        }
+        .ucl-score {
+            background: rgba(255, 255, 255, 0.12);
+            padding: 1px 7px;
+            border-radius: 5px;
+            font-weight: 700;
+            font-size: 0.78rem;
+            min-width: 24px;
+            text-align: center;
+        }
+        .ucl-team-row.winner .ucl-score {
+            background: #0EA5E9;
+            color: #fff;
+        }
+        .ucl-center-stage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 215px;
+            padding: 10px;
+        }
+        .ucl-trophy-glow {
+            width: 82px;
+            height: 82px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(250,204,21,0.35) 0%, rgba(14,165,233,0.12) 65%, transparent 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            border: 2px solid rgba(250, 204, 21, 0.55);
+        }
+        .ucl-final-box {
+            width: 100%;
+            border: 2px solid #FACC15 !important;
+            box-shadow: 0 0 22px rgba(250, 204, 21, 0.35);
+        }
+        .award-podium {
+            border-radius: 14px;
+            border: 1px solid #E2E8F0;
+            transition: transform 0.15s ease;
+        }
+        .award-podium:hover {
+            transform: translateY(-2px);
+        }
+        .qualify-row {
+            background-color: rgba(22, 163, 74, 0.08) !important;
         }
     </style>
 </head>
@@ -47,127 +205,368 @@
             <li class="nav-item">
                 <a href="inventory.html" class="nav-link d-flex justify-content-between align-items-center">
                     <span><i class="bi bi-box-seam me-2"></i> Quản lý kho hàng</span>
-                    <span class="badge bg-danger rounded-pill" id="sidebarAlertCount">0</span>
+                    <span class="badge bg-danger rounded-pill" id="lowStockBadge">0</span>
                 </a>
             </li>
             <li class="nav-item"><a href="tournaments.html" class="nav-link active"><i class="bi bi-trophy"></i> Quản lý giải đấu</a></li>
         </ul>
 
-        <div class="d-grid gap-2 mt-auto">
-            <button onclick="resetDemoData()" class="btn btn-outline-secondary btn-sm text-light border-secondary">
-                <i class="bi bi-arrow-counterclockwise me-1"></i> Khôi phục dữ liệu mẫu
-            </button>
-            <a href="login.html" class="btn btn-outline-danger btn-sm">
-                <i class="bi bi-box-arrow-left me-1"></i> Đăng xuất
-            </a>
-        </div>
+        <!-- <button onclick="resetDemoData()" class="btn btn-outline-secondary btn-sm mt-auto text-light border-secondary mb-2">
+            <i class="bi bi-arrow-counterclockwise me-1"></i> Khôi phục dữ liệu mẫu
+        </button> -->
+        <a href="login.html" class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
+        </a>
     </aside>
 
     <!-- MAIN CONTENT -->
     <div class="main-content">
-        <header class="topbar d-flex align-items-center justify-content-between px-4 sticky-top">
+        <header class="topbar d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 sticky-top">
             <div>
                 <h5 class="mb-0 fw-bold">Quản Lý Giải Đấu Phong Trào</h5>
-                <small class="text-muted">Tạo giải đấu, quản lý đội bóng tham gia, lịch thi đấu và cập nhật kết quả</small>
+                <small class="text-muted">Tổ chức giải đấu, bốc thăm chia bảng, sơ đồ C1 &amp; giải thưởng cá nhân</small>
             </div>
             <div class="d-flex gap-2">
-                <button class="btn btn-outline-success btn-sm px-3 py-2" data-bs-toggle="modal" data-bs-target="#addTeamModal">
+                <button class="btn btn-outline-success btn-sm px-3" data-bs-toggle="modal" data-bs-target="#addTeamModal">
                     <i class="bi bi-people-fill me-1"></i> + Thêm đội tham gia
                 </button>
-                <button class="btn btn-pitch btn-sm px-3 py-2" data-bs-toggle="modal" data-bs-target="#createTourModal">
+                <button class="btn btn-pitch btn-sm px-3" onclick="openConfigModal()">
                     <i class="bi bi-trophy-fill me-1"></i> Tạo / Cấu hình giải đấu
                 </button>
             </div>
         </header>
 
         <main class="p-4">
-            <!-- BANNER GIẢI ĐẤU -->
-            <div class="tournament-banner p-4 mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <!-- BANNER TỔNG QUAN GIẢI ĐẤU + NÚT (!) THỂ LỆ -->
+            <div class="hero-tournament p-4 mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <button type="button" class="btn-rules-game" onclick="openRulesModal()" title="Xem thể lệ giải đấu">
+                    !
+                </button>
+
                 <div>
                     <span class="badge bg-warning text-dark mb-2" id="tourStatusBadge">Đang diễn ra</span>
-                    <h4 class="fw-bold mb-1" id="tourTitle">Giải Bóng Đá Phong Trào</h4>
+                    <span class="badge bg-light text-success mb-2 ms-1" id="tourFormatBadge">Xoay vòng</span>
+                    <h3 class="fw-bold mb-1" id="tourNameDisplay">Giải Bóng Đá Phong Trào</h3>
                     <div class="small opacity-75">
-                        <i class="bi bi-award me-1"></i> Giải thưởng: <strong id="tourPrize">5.000.000đ</strong> 
+                        <i class="bi bi-award-fill me-1"></i> Giải thưởng: <strong id="tourPrizeDisplay"></strong>
                         <span class="mx-2">•</span>
-                        <i class="bi bi-geo-alt me-1"></i> Địa điểm: Cụm sân bóng Hiệp Phát (Sân 7A)
+                        <i class="bi bi-geo-alt-fill me-1"></i> <span id="tourLocationDisplay"></span>
                     </div>
                 </div>
-                <div class="d-flex gap-3 text-center">
-                    <div class="bg-white bg-opacity-10 rounded-3 px-3 py-2">
-                        <div class="fs-5 fw-bold" id="totalTeamsStat">4</div>
-                        <small class="opacity-75">Đội tham gia</small>
+                <div class="d-flex gap-3 text-center me-5">
+                    <div class="px-3 py-2 rounded-3" style="background: rgba(255,255,255,0.14); min-width: 105px;">
+                        <h4 class="fw-bold mb-0" id="statTeamCount">0</h4>
+                        <small style="font-size: 0.75rem;">Đội tham gia</small>
                     </div>
-                    <div class="bg-white bg-opacity-10 rounded-3 px-3 py-2">
-                        <div class="fs-5 fw-bold" id="totalMatchesStat">6</div>
-                        <small class="opacity-75">Trận đấu</small>
+                    <div class="px-3 py-2 rounded-3" style="background: rgba(255,255,255,0.14); min-width: 105px;">
+                        <h4 class="fw-bold mb-0" id="statMatchCount">0</h4>
+                        <small style="font-size: 0.75rem;">Tổng số trận</small>
                     </div>
                 </div>
             </div>
 
-            <div class="row g-4">
-                <!-- CỘT TRÁI (7 CỘT): BẢNG XẾP HẠNG & ĐỘI THAM GIA -->
-                <div class="col-lg-7">
-                    <div class="card card-custom p-4 mb-4">
-                        <h6 class="fw-bold mb-3"><i class="bi bi-list-ol text-success me-1"></i> Bảng xếp hạng & Đội tham gia</h6>
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle small mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Hạng</th>
-                                        <th>Đội bóng / Đội trưởng</th>
-                                        <th class="text-center">Số trận</th>
-                                        <th class="text-center">T - H - B</th>
-                                        <th class="text-center">Điểm</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="standingsBody"></tbody>
-                            </table>
+            <!-- THANH TAB CHUYỂN CHẾ ĐỘ -->
+            <ul class="nav nav-pills mb-4 gap-2" id="tourTabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active fw-semibold" data-bs-toggle="pill" data-bs-target="#tab-setup">
+                        <i class="bi bi-shuffle me-1"></i> 1. Đội bóng &amp; Bốc thăm chia bảng
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-semibold" data-bs-toggle="pill" data-bs-target="#tab-groups">
+                        <i class="bi bi-table me-1"></i> 2. Bảng xếp hạng (FIFA) &amp; Lịch đấu
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-semibold" data-bs-toggle="pill" data-bs-target="#tab-bracket">
+                        <i class="bi bi-diagram-3-fill me-1"></i> 3. Sơ đồ Hạt giống (Kiểu C1)
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-semibold" data-bs-toggle="pill" data-bs-target="#tab-awards">
+                        <i class="bi bi-star-fill me-1"></i> 4. Giải thưởng Cá nhân
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+                <!-- ================= TAB 1: ĐỘI BÓNG & BỐC THĂM ================= -->
+                <div class="tab-pane fade show active" id="tab-setup">
+                    <div class="row g-4">
+                        <div class="col-lg-5">
+                            <div class="card card-custom p-4 h-100">
+                                <h6 class="fw-bold mb-3"><i class="bi bi-sliders text-success me-1"></i> Thiết lập thể thức &amp; Bốc thăm</h6>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold">Thể thức thi đấu</label>
+                                    <select id="formatSelect" class="form-select" onchange="onFormatChange()">
+                                        <option value="round_robin">Đá xoay vòng</option>
+                                        <option value="group_knockout">Chia vòng bảng + Vòng loại C1</option>
+                                        <option value="knockout">Đá loại trực tiếp (Sơ đồ C1)</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3" id="groupCountWrapper">
+                                    <label class="form-label small fw-semibold">Số bảng đấu</label>
+                                    <select id="groupCountSelect" class="form-select">
+                                        <option value="2">2 Bảng (Bảng A, B)</option>
+                                        <option value="3">3 Bảng (Bảng A, B, C)</option>
+                                        <option value="4">4 Bảng (Bảng A, B, C, D)</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold">Cách chia bảng / xếp cặp</label>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-pitch w-50 btn-sm py-2" onclick="runDraw('random')">
+                                            <i class="bi bi-dice-5-fill me-1"></i> Bốc thăm ngẫu nhiên
+                                        </button>
+                                        <button class="btn btn-outline-primary w-50 btn-sm py-2" onclick="runDraw('manual')">
+                                            <i class="bi bi-hand-index-thumb me-1"></i> Tạo lịch theo bảng đã chọn
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <hr>
+                                <div class="small fw-semibold mb-2">Tạo nhanh bộ đội mẫu:</div>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="quickGenerateTeams(4)">4 đội</button>
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="quickGenerateTeams(5)">5 đội (Lẻ)</button>
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="quickGenerateTeams(7)">7 đội</button>
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="quickGenerateTeams(8)">8 đội</button>
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="quickGenerateTeams(12)">12 đội</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-7">
+                            <div class="card card-custom p-4 h-100">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="fw-bold mb-0">Danh sách Đội đăng ký (<span id="teamListCount">0</span> đội)</h6>
+                                    <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#addTeamModal">+ Thêm đội</button>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle small mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Tên đội bóng</th>
+                                                <th>Đội trưởng / SĐT</th>
+                                                <th style="width: 115px;">Bảng</th>
+                                                <th class="text-end">Xóa</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="teamSetupBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- CỘT PHẢI (5 CỘT): LỊCH THI ĐẤU & KẾT QUẢ -->
-                <div class="col-lg-5">
-                    <div class="card card-custom p-4">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="fw-bold mb-0"><i class="bi bi-calendar2-event text-primary me-1"></i> Lịch thi đấu & Kết quả</h6>
-                            <span class="small text-muted">Bấm để nhập tỷ số</span>
+                <!-- ================= TAB 2: VÒNG BẢNG / XOAY VÒNG (FIFA) ================= -->
+                <div class="tab-pane fade" id="tab-groups">
+                    <div class="d-flex justify-content-end mb-3">
+                        <button class="btn btn-primary btn-sm px-3" id="btnAdvanceToC1" onclick="advanceGroupWinnersToBracket()">
+                            <i class="bi bi-diagram-3-fill me-1"></i> Đẩy các đội đi tiếp vào Sơ đồ C1
+                        </button>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-lg-7" id="groupTablesContainer"></div>
+                        <div class="col-lg-5">
+                            <div class="card card-custom p-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="fw-bold mb-0"><i class="bi bi-calendar-event me-1 text-success"></i> Lịch thi đấu &amp; Kết quả</h6>
+                                </div>
+                                <div id="groupMatchesContainer" style="max-height: 560px; overflow-y: auto;"></div>
+                            </div>
                         </div>
-                        <div id="matchesList"></div>
+                    </div>
+                </div>
+
+                <!-- ================= TAB 3: SƠ ĐỒ HẠT GIỐNG KIỂU C1 ================= -->
+                <div class="tab-pane fade" id="tab-bracket">
+                    <div class="ucl-arena">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 px-2">
+                            <div class="ucl-header-title fs-5" id="uclBannerTitle">ROAD TO FINAL • OPENPITCH CUP</div>
+                            <button class="btn btn-outline-info btn-sm" onclick="generateKnockoutFromAllTeams(true)">
+                                <i class="bi bi-shuffle me-1"></i> Bốc thăm lại nhánh C1
+                            </button>
+                        </div>
+
+                        <div id="uclBracketContainer"></div>
+                    </div>
+                </div>
+
+                <!-- ================= TAB 4: GIẢI THƯỞNG CÁ NHÂN ================= -->
+                <div class="tab-pane fade" id="tab-awards">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="card award-podium p-3 bg-warning bg-opacity-10 border-warning">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="fs-1 text-warning"><i class="bi bi-trophy-fill"></i></div>
+                                    <div>
+                                        <div class="small text-uppercase fw-bold text-warning-emphasis">Vua phá lưới</div>
+                                        <h5 class="fw-bold mb-0" id="topScorerWinner">Chưa có dữ liệu</h5>
+                                        <small class="text-muted" id="topScorerDetail"></small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card award-podium p-3 bg-info bg-opacity-10 border-info">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="fs-1 text-info"><i class="bi bi-lightning-charge-fill"></i></div>
+                                    <div>
+                                        <div class="small text-uppercase fw-bold text-info-emphasis">Vua kiến tạo</div>
+                                        <h5 class="fw-bold mb-0" id="topAssistWinner">Chưa có dữ liệu</h5>
+                                        <small class="text-muted" id="topAssistDetail"></small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card award-podium p-3 bg-success bg-opacity-10 border-success">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="fs-1 text-success"><i class="bi bi-shield-fill-check"></i></div>
+                                    <div>
+                                        <div class="small text-uppercase fw-bold text-success">Thủ môn xuất sắc nhất</div>
+                                        <h5 class="fw-bold mb-0" id="bestGkWinner">Chưa có dữ liệu</h5>
+                                        <small class="text-muted" id="bestGkDetail"></small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-lg-4">
+                            <div class="card card-custom p-3 h-100">
+                                <h6 class="fw-bold text-warning-emphasis mb-3"><i class="bi bi-bullseye me-1"></i> Ghi bàn nhiều nhất</h6>
+                                <form class="row g-2 mb-3" onsubmit="addAwardEntry(event, 'scorers')">
+                                    <div class="col-6"><input type="text" id="scorerName" class="form-control form-control-sm" placeholder="Tên cầu thủ" required></div>
+                                    <div class="col-6"><select id="scorerTeam" class="form-select form-select-sm team-dropdown"></select></div>
+                                    <div class="col-7"><input type="number" id="scorerVal" class="form-control form-control-sm" placeholder="Số bàn thắng" min="1" value="1" required></div>
+                                    <div class="col-5"><button class="btn btn-warning btn-sm w-100 fw-semibold">+ Thêm</button></div>
+                                </form>
+                                <div id="scorersList"></div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="card card-custom p-3 h-100">
+                                <h6 class="fw-bold text-info-emphasis mb-3"><i class="bi bi-send-fill me-1"></i> Kiến tạo nhiều nhất</h6>
+                                <form class="row g-2 mb-3" onsubmit="addAwardEntry(event, 'assists')">
+                                    <div class="col-6"><input type="text" id="assistName" class="form-control form-control-sm" placeholder="Tên cầu thủ" required></div>
+                                    <div class="col-6"><select id="assistTeam" class="form-select form-select-sm team-dropdown"></select></div>
+                                    <div class="col-7"><input type="number" id="assistVal" class="form-control form-control-sm" placeholder="Số kiến tạo" min="1" value="1" required></div>
+                                    <div class="col-5"><button class="btn btn-info text-white btn-sm w-100 fw-semibold">+ Thêm</button></div>
+                                </form>
+                                <div id="assistsList"></div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="card card-custom p-3 h-100">
+                                <h6 class="fw-bold text-success mb-3"><i class="bi bi-hand-index-fill me-1"></i> Thủ môn xuất sắc nhất</h6>
+                                <form class="row g-2 mb-3" onsubmit="addAwardEntry(event, 'goalkeepers')">
+                                    <div class="col-6"><input type="text" id="gkName" class="form-control form-control-sm" placeholder="Tên thủ môn" required></div>
+                                    <div class="col-6"><select id="gkTeam" class="form-select form-select-sm team-dropdown"></select></div>
+                                    <div class="col-4"><input type="number" id="gkClean" class="form-control form-control-sm" placeholder="Sạch lưới" min="0" value="1" title="Số trận giữ sạch lưới" required></div>
+                                    <div class="col-4"><input type="number" id="gkConceded" class="form-control form-control-sm" placeholder="Thủng lưới" min="0" value="0" title="Số bàn thua" required></div>
+                                    <div class="col-4"><button class="btn btn-success btn-sm w-100 fw-semibold">+ Thêm</button></div>
+                                </form>
+                                <div id="goalkeepersList"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- MODAL CẬP NHẬT TỶ SỐ TRẬN ĐẤU -->
-    <div class="modal fade" id="scoreModal" tabindex="-1">
-        <div class="modal-dialog">
-            <form class="modal-content" onsubmit="saveMatchScore(event)">
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold">Cập nhật kết quả trận đấu</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <!-- MODAL BẢNG THỂ LỆ GIẢI ĐẤU (MỞ KHI BẤM NÚT !) -->
+    <div class="modal fade" id="rulesModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg overflow-hidden">
+                <div class="modal-header text-white" style="background: linear-gradient(135deg, #064E3B, #0F172A);">
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0">
+                            <i class="bi bi-journal-bookmark-fill text-warning me-2"></i>BẢNG THỂ LỆ GIẢI ĐẤU
+                        </h5>
+                        <small class="text-light opacity-75" id="rulesModalTourName"></small>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body text-center">
-                    <input type="hidden" id="editMatchId">
-                    <p class="small text-muted mb-3" id="matchInfoText"></p>
-                    <div class="row align-items-center justify-content-center g-2">
-                        <div class="col-5">
-                            <div class="fw-bold mb-2" id="labelTeamA">Đội A</div>
-                            <input type="number" id="inputScoreA" class="form-control form-control-lg text-center fw-bold" min="0" value="0" required>
+                <div class="modal-body p-4 small">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3 h-100 border">
+                                <h6 class="fw-bold text-success mb-2"><i class="bi bi-diagram-2-fill me-1"></i> 1. Thể thức thi đấu</h6>
+                                <ul class="mb-0 ps-3 text-secondary">
+                                    <li class="mb-1"><strong>Đá xoay vòng (≤ 6 đội):</strong> Mỗi đội gặp tất cả các đội còn lại đúng 1 lần theo công thức <code>N × (N - 1) / 2</code> trận.</li>
+                                    <li class="mb-1"><strong>Vòng bảng + Loại trực tiếp (≥ 7 đội):</strong> Chia bảng tự động (2–4 bảng), chọn các đội đứng đầu vào Sơ đồ C1.</li>
+                                    <li><strong>Loại trực tiếp:</strong> Thi đấu knock-out ngay từ vòng đầu theo sơ đồ nhánh đối xứng C1.</li>
+                                </ul>
+                            </div>
                         </div>
-                        <div class="col-2 fw-bold fs-4">-</div>
-                        <div class="col-5">
-                            <div class="fw-bold mb-2" id="labelTeamB">Đội B</div>
-                            <input type="number" id="inputScoreB" class="form-control form-control-lg text-center fw-bold" min="0" value="0" required>
+
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3 h-100 border">
+                                <h6 class="fw-bold text-primary mb-2"><i class="bi bi-dice-5-fill me-1"></i> 2. Quy tắc chia bảng &amp; Vé may mắn (BYE)</h6>
+                                <ul class="mb-0 ps-3 text-secondary">
+                                    <li class="mb-1">Áp dụng <strong>Bốc thăm ngẫu nhiên</strong> hoặc <strong>Chia bảng hạt giống</strong> tùy theo điều lệ giải.</li>
+                                    <li class="mb-1">Số đội chẵn (4, 8, 16) sẽ được phân bổ đều vào các bảng và hai nhánh đấu.</li>
+                                    <li>Trường hợp số đội lẻ (5, 7, 9...), ban tổ chức bốc thăm chọn đội may mắn nhận vé <strong>BYE</strong> vào thẳng vòng trong.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3 h-100 border">
+                                <h6 class="fw-bold text-dark mb-2"><i class="bi bi-shield-check text-success me-1"></i> 3. Cách tính điểm &amp; Xếp hạng (FIFA)</h6>
+                                <ul class="mb-0 ps-3 text-secondary">
+                                    <li class="mb-1"><strong>Thắng:</strong> 3 điểm &nbsp;•&nbsp; <strong>Hòa:</strong> 1 điểm &nbsp;•&nbsp; <strong>Thua:</strong> 0 điểm.</li>
+                                    <li><strong>Thứ tự xét đi tiếp:</strong> Tổng điểm &rarr; Hiệu số bàn thắng bại (HS) &rarr; Tổng số bàn thắng (BT) &rarr; Kết quả đối đầu trực tiếp.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3 h-100 border">
+                                <h6 class="fw-bold text-warning-emphasis mb-2"><i class="bi bi-trophy-fill text-warning me-1"></i> 4. Vòng loại trực tiếp &amp; Giải thưởng</h6>
+                                <ul class="mb-0 ps-3 text-secondary">
+                                    <li class="mb-1">Các trận knock-out hòa trong thời gian thi đấu chính thức sẽ đá <strong>luân lưu</strong> phân thắng bại ngay.</li>
+                                    <li class="mb-1"><strong>Giải tập thể:</strong> <span id="rulesModalPrize"></span>.</li>
+                                    <li><strong>Giải cá nhân:</strong> Vua phá lưới, Vua kiến tạo và Thủ môn xuất sắc nhất.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- QUY ĐỊNH RIÊNG CỦA GIẢI (CHỦ SÂN TỰ CHỈNH ĐƯỢC) -->
+                    <div class="p-3 rounded-3 border bg-white">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold mb-0"><i class="bi bi-file-earmark-text text-secondary me-1"></i> 5. Quy định bổ sung của Ban tổ chức</h6>
+                            <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2" id="btnToggleEditRules" onclick="toggleEditCustomRules()">
+                                <i class="bi bi-pencil me-1"></i>Chỉnh sửa
+                            </button>
+                        </div>
+                        <div id="customRulesView" class="text-secondary" style="white-space: pre-line;"></div>
+                        <div id="customRulesEditBox" class="d-none">
+                            <textarea id="customRulesTextarea" class="form-control form-control-sm mb-2" rows="3"></textarea>
+                            <div class="text-end">
+                                <button type="button" class="btn btn-light btn-sm me-1" onclick="toggleEditCustomRules(false)">Hủy</button>
+                                <button type="button" class="btn btn-pitch btn-sm" onclick="saveCustomRules()">Lưu quy định</button>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-pitch">Lưu kết quả & Tính điểm</button>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-pitch btn-sm px-4" data-bs-dismiss="modal">Đóng bảng thể lệ</button>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 
@@ -176,60 +575,111 @@
         <div class="modal-dialog">
             <form class="modal-content" onsubmit="addTeam(event)">
                 <div class="modal-header">
-                    <h5 class="modal-title fw-bold">Đăng ký đội bóng tham gia</h5>
+                    <h5 class="modal-title fw-bold">Thêm đội bóng tham gia giải</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label small fw-semibold">Tên đội bóng</label>
-                        <input type="text" id="teamName" class="form-control" placeholder="VD: FC Liên Quân" required>
+                        <input type="text" id="newTeamName" class="form-control" placeholder="VD: FC Ánh Dương" required>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold">Tên đội trưởng</label>
-                        <input type="text" id="teamCaptain" class="form-control" placeholder="VD: Anh Đức" required>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label small fw-semibold">Số điện thoại liên hệ</label>
-                        <input type="text" id="teamPhone" class="form-control" placeholder="0905xxxxxx" required>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Đội trưởng</label>
+                            <input type="text" id="newTeamCaptain" class="form-control" placeholder="VD: Anh Minh" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Số điện thoại</label>
+                            <input type="text" id="newTeamPhone" class="form-control" placeholder="0905xxxxxx" required>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-pitch">Thêm đội bóng</button>
+                    <button type="submit" class="btn btn-pitch">Thêm vào giải</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL TẠO / CẤU HÌNH GIẢI ĐẤU -->
-    <div class="modal fade" id="createTourModal" tabindex="-1">
+    <!-- MODAL CẤU HÌNH GIẢI ĐẤU -->
+    <div class="modal fade" id="configModal" tabindex="-1">
         <div class="modal-dialog">
-            <form class="modal-content" onsubmit="updateTourInfo(event)">
+            <form class="modal-content" onsubmit="saveTournamentConfig(event)">
                 <div class="modal-header">
-                    <h5 class="modal-title fw-bold">Tạo / Cập nhật thông tin Giải đấu</h5>
+                    <h5 class="modal-title fw-bold">Tạo / Cấu hình Giải đấu</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label small fw-semibold">Tên giải đấu</label>
-                        <input type="text" id="inputTourName" class="form-control" required>
+                        <input type="text" id="cfgTourName" class="form-control" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-semibold">Cơ cấu giải thưởng</label>
-                        <input type="text" id="inputTourPrize" class="form-control" required>
+                        <input type="text" id="cfgTourPrize" class="form-control" required>
                     </div>
-                    <div class="mb-2">
-                        <label class="form-label small fw-semibold">Trạng thái giải</label>
-                        <select id="inputTourStatus" class="form-select">
-                            <option value="Đang nhận đăng ký">Đang nhận đăng ký</option>
-                            <option value="Đang diễn ra">Đang diễn ra</option>
-                            <option value="Đã kết thúc">Đã kết thúc</option>
-                        </select>
+                    <div class="row g-2">
+                        <div class="col-7">
+                            <label class="form-label small fw-semibold">Địa điểm tổ chức</label>
+                            <input type="text" id="cfgTourLocation" class="form-control" required>
+                        </div>
+                        <div class="col-5">
+                            <label class="form-label small fw-semibold">Trạng thái</label>
+                            <select id="cfgTourStatus" class="form-select">
+                                <option value="Đang đăng ký">Đang đăng ký</option>
+                                <option value="Đang diễn ra">Đang diễn ra</option>
+                                <option value="Đã kết thúc">Đã kết thúc</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-pitch">Lưu thông tin giải</button>
+                    <button type="submit" class="btn btn-pitch">Lưu cấu hình</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL CẬP NHẬT TỶ SỐ -->
+    <div class="modal fade" id="scoreModal" tabindex="-1">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <form class="modal-content" onsubmit="saveMatchScore(event)">
+                <div class="modal-header">
+                    <h6 class="modal-title fw-bold" id="scoreModalTitle">Cập nhật tỷ số</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="scoreMatchType">
+                    <input type="hidden" id="scoreMatchId">
+                    <input type="hidden" id="scoreRoundIdx">
+                    <input type="hidden" id="scoreMatchIdx">
+
+                    <div class="row g-2 align-items-center text-center mb-3">
+                        <div class="col-5">
+                            <div class="fw-bold small mb-1 text-truncate" id="scoreTeamAName">Đội A</div>
+                            <input type="number" id="scoreInputA" class="form-control text-center fw-bold fs-5" min="0" required>
+                        </div>
+                        <div class="col-2 fw-bold text-muted">-</div>
+                        <div class="col-5">
+                            <div class="fw-bold small mb-1 text-truncate" id="scoreTeamBName">Đội B</div>
+                            <input type="number" id="scoreInputB" class="form-control text-center fw-bold fs-5" min="0" required>
+                        </div>
+                    </div>
+
+                    <div id="penaltyBox" class="p-2 bg-light rounded-3 border d-none">
+                        <div class="small fw-semibold text-center text-danger mb-2">Hòa ở vòng loại! Nhập tỷ số Luân lưu:</div>
+                        <div class="row g-2 align-items-center text-center">
+                            <div class="col-5"><input type="number" id="penInputA" class="form-control form-control-sm text-center" min="0" placeholder="Pen A"></div>
+                            <div class="col-2 small text-muted">Pen</div>
+                            <div class="col-5"><input type="number" id="penInputB" class="form-control form-control-sm text-center" min="0" placeholder="Pen B"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-pitch btn-sm">Lưu kết quả</button>
                 </div>
             </form>
         </div>
@@ -238,154 +688,883 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/data.js"></script>
     <script>
+        const configModal = new bootstrap.Modal(document.getElementById('configModal'));
         const scoreModal = new bootstrap.Modal(document.getElementById('scoreModal'));
+        const rulesModal = new bootstrap.Modal(document.getElementById('rulesModal'));
 
-        function renderTournament() {
-            const db = getPitchData();
-            const tour = db.tournaments;
+        const DEFAULT_CUSTOM_RULES =
+            "• Thời gian thi đấu: 2 hiệp, mỗi hiệp 25 phút (nghỉ giữa hiệp 5 phút).\n" +
+            "• Quy định thẻ phạt: 2 thẻ vàng nghỉ 1 trận kế tiếp; thẻ đỏ trực tiếp nghỉ 1 trận.\n" +
+            "• Các đội có mặt trước giờ bóng lăn tối thiểu 15 phút để điểm danh.";
 
-            // Badge tồn kho
-            document.getElementById('sidebarAlertCount').innerText = db.products.filter(p => p.stock <= p.minStock).length;
-
-            // Render Banner
-            document.getElementById('tourTitle').innerText = tour.name;
-            document.getElementById('tourPrize').innerText = tour.prize;
-            document.getElementById('tourStatusBadge').innerText = tour.status;
-            document.getElementById('totalTeamsStat').innerText = tour.teams.length;
-            document.getElementById('totalMatchesStat').innerText = tour.matches.length;
-
-            // Gán sẵn vào form chỉnh sửa giải
-            document.getElementById('inputTourName').value = tour.name;
-            document.getElementById('inputTourPrize').value = tour.prize;
-            document.getElementById('inputTourStatus').value = tour.status;
-
-            // Sắp xếp bảng xếp hạng theo Điểm giảm dần
-            const sortedTeams = [...tour.teams].sort((a, b) => b.points - a.points);
-            const tbody = document.getElementById('standingsBody');
-            tbody.innerHTML = '';
-
-            sortedTeams.forEach((t, idx) => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>
-                            <span class="badge ${idx === 0 ? 'bg-warning text-dark' : (idx === 1 ? 'bg-secondary' : 'bg-light text-dark border')}">
-                                #${idx + 1}
-                            </span>
-                        </td>
-                        <td>
-                            <div class="fw-bold">${t.name}</div>
-                            <small class="text-muted"><i class="bi bi-person me-1"></i>${t.captain} (${t.phone})</small>
-                        </td>
-                        <td class="text-center">${t.played}</td>
-                        <td class="text-center">${t.won} - ${t.drawn} - ${t.lost}</td>
-                        <td class="text-center"><span class="fs-6 fw-bold text-success">${t.points}</span></td>
-                    </tr>
-                `;
+        function ensureTournamentSchema(db) {
+            const t = db.tournaments || {};
+            if (!t.location) t.location = "Cụm sân bóng openPitch (Sân 7A)";
+            if (!t.format) t.format = (t.teams && t.teams.length >= 7) ? "group_knockout" : "round_robin";
+            if (!t.groupCount) t.groupCount = 2;
+            if (!t.customRules) t.customRules = DEFAULT_CUSTOM_RULES;
+            if (!t.teams) t.teams = [];
+            t.teams.forEach((team, idx) => {
+                if (!team.group) team.group = "A";
+                if (!team.seed) team.seed = idx + 1;
             });
 
-            // Render Lịch thi đấu & Kết quả
-            const mContainer = document.getElementById('matchesList');
-            mContainer.innerHTML = '';
-            tour.matches.forEach(m => {
-                mContainer.innerHTML += `
-                    <div class="border rounded-3 p-3 mb-2 bg-light bg-opacity-50">
-                        <div class="d-flex justify-content-between align-items-center small text-muted mb-2">
-                            <span class="fw-semibold text-primary">${m.round}</span>
-                            <span><i class="bi bi-clock me-1"></i>${m.time}</span>
+            if (!t.groupMatches) {
+                t.groupMatches = generateRoundRobinMatches(t.teams, "Chung");
+            }
+            if (!t.bracket) {
+                t.bracket = buildKnockoutBracket(t.teams.map(x => x.id));
+            }
+            if (!t.awards) {
+                t.awards = {
+                    scorers: [
+                        { id: "SC1", player: "Nguyễn Minh Quang", team: t.teams[0]?.name || "FC IT Đà Nẵng", value: 5 },
+                        { id: "SC2", player: "Trần Đức Huy", team: t.teams[1]?.name || "FC Bình Minh", value: 3 }
+                    ],
+                    assists: [
+                        { id: "AS1", player: "Lê Hoàng Nam", team: t.teams[0]?.name || "FC IT Đà Nẵng", value: 4 }
+                    ],
+                    goalkeepers: [
+                        { id: "GK1", player: "Phạm Văn Lâm", team: t.teams[0]?.name || "FC IT Đà Nẵng", cleanSheets: 2, conceded: 1 }
+                    ]
+                };
+            }
+            db.tournaments = t;
+            savePitchData(db);
+            return db;
+        }
+
+        // ==================== MỞ & SỬA BẢNG THỂ LỆ (!) ====================
+        function openRulesModal() {
+            const db = ensureTournamentSchema(getPitchData());
+            const t = db.tournaments;
+            document.getElementById('rulesModalTourName').innerText = `${t.name} • ${t.location}`;
+            document.getElementById('rulesModalPrize').innerText = t.prize;
+            document.getElementById('customRulesView').innerText = t.customRules || DEFAULT_CUSTOM_RULES;
+            document.getElementById('customRulesTextarea').value = t.customRules || DEFAULT_CUSTOM_RULES;
+            toggleEditCustomRules(false);
+            rulesModal.show();
+        }
+
+        function toggleEditCustomRules(forceState) {
+            const editBox = document.getElementById('customRulesEditBox');
+            const viewBox = document.getElementById('customRulesView');
+            const isEditing = forceState !== undefined ? forceState : editBox.classList.contains('d-none');
+            editBox.classList.toggle('d-none', !isEditing);
+            viewBox.classList.toggle('d-none', isEditing);
+        }
+
+        function saveCustomRules() {
+            const db = getPitchData();
+            db.tournaments.customRules = document.getElementById('customRulesTextarea').value.trim() || DEFAULT_CUSTOM_RULES;
+            savePitchData(db);
+            document.getElementById('customRulesView').innerText = db.tournaments.customRules;
+            toggleEditCustomRules(false);
+        }
+
+        function shuffleArray(arr) {
+            const copy = [...arr];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        function generateRoundRobinMatches(teamList, groupLabel) {
+            const matches = [];
+            let count = 1;
+            for (let i = 0; i < teamList.length; i++) {
+                for (let j = i + 1; j < teamList.length; j++) {
+                    matches.push({
+                        id: `GM_${groupLabel}_${count}_${Date.now().toString().slice(-3)}`,
+                        group: groupLabel,
+                        round: `Lượt ${Math.ceil(count / Math.max(1, Math.floor(teamList.length / 2)))}`,
+                        teamAId: teamList[i].id,
+                        teamBId: teamList[j].id,
+                        scoreA: null,
+                        scoreB: null,
+                        time: "18:00 - Sân 7A",
+                        played: false
+                    });
+                    count++;
+                }
+            }
+            return matches;
+        }
+
+        function buildKnockoutBracket(teamIds) {
+            const n = teamIds.length;
+            if (n < 2) return { rounds: [], championId: null };
+
+            let size = 2;
+            while (size < n) size *= 2;
+            const byeCount = size - n;
+
+            const slots = [];
+            let tIdx = 0;
+            for (let i = 0; i < size / 2; i++) {
+                const teamA = teamIds[tIdx++] || null;
+                let teamB = null;
+                if (i < byeCount) {
+                    teamB = "BYE";
+                } else {
+                    teamB = teamIds[tIdx++] || "BYE";
+                }
+                slots.push([teamA, teamB]);
+            }
+
+            const totalRounds = Math.log2(size);
+            const rounds = [];
+
+            const round1 = slots.map((pair, idx) => {
+                const isBye = pair[1] === "BYE" || pair[0] === "BYE";
+                const winnerId = pair[1] === "BYE" ? pair[0] : (pair[0] === "BYE" ? pair[1] : null);
+                return {
+                    id: `KO_R0_M${idx}`,
+                    teamAId: pair[0],
+                    teamBId: pair[1],
+                    scoreA: null,
+                    scoreB: null,
+                    penA: null,
+                    penB: null,
+                    winnerId: isBye ? winnerId : null,
+                    isBye: isBye
+                };
+            });
+            rounds.push(round1);
+
+            for (let r = 1; r < totalRounds; r++) {
+                const matchCount = size / Math.pow(2, r + 1);
+                const rMatches = [];
+                for (let m = 0; m < matchCount; m++) {
+                    rMatches.push({
+                        id: `KO_R${r}_M${m}`,
+                        teamAId: null,
+                        teamBId: null,
+                        scoreA: null,
+                        scoreB: null,
+                        penA: null,
+                        penB: null,
+                        winnerId: null,
+                        isBye: false
+                    });
+                }
+                rounds.push(rMatches);
+            }
+
+            const bracket = { rounds, championId: null };
+            propagateBracketWinners(bracket);
+            return bracket;
+        }
+
+        function propagateBracketWinners(bracket) {
+            const rounds = bracket.rounds;
+            for (let r = 0; r < rounds.length - 1; r++) {
+                rounds[r].forEach((m, idx) => {
+                    const nextIdx = Math.floor(idx / 2);
+                    const isSlotA = idx % 2 === 0;
+                    if (isSlotA) rounds[r + 1][nextIdx].teamAId = m.winnerId || null;
+                    else rounds[r + 1][nextIdx].teamBId = m.winnerId || null;
+                });
+            }
+            const finalRound = rounds[rounds.length - 1];
+            bracket.championId = (finalRound && finalRound[0]) ? finalRound[0].winnerId : null;
+        }
+
+        function calculateFifaStandings(teams, matches) {
+            const stats = teams.map(t => ({
+                ...t, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0
+            }));
+
+            matches.filter(m => m.played && m.scoreA !== null && m.scoreB !== null).forEach(m => {
+                const a = stats.find(s => s.id === m.teamAId);
+                const b = stats.find(s => s.id === m.teamBId);
+                if (!a || !b) return;
+                const sA = Number(m.scoreA);
+                const sB = Number(m.scoreB);
+
+                a.played++; b.played++;
+                a.gf += sA; a.ga += sB;
+                b.gf += sB; b.ga += sA;
+
+                if (sA > sB) { a.won++; a.points += 3; b.lost++; }
+                else if (sA < sB) { b.won++; b.points += 3; a.lost++; }
+                else { a.drawn++; b.drawn++; a.points += 1; b.points += 1; }
+            });
+
+            stats.forEach(s => s.gd = s.gf - s.ga);
+
+            stats.sort((a, b) => {
+                if (b.points !== a.points) return b.points - a.points;
+                if (b.gd !== a.gd) return b.gd - a.gd;
+                if (b.gf !== a.gf) return b.gf - a.gf;
+
+                const h2h = matches.find(m =>
+                    m.played && ((m.teamAId === a.id && m.teamBId === b.id) || (m.teamAId === b.id && m.teamBId === a.id))
+                );
+                if (h2h) {
+                    const aScore = h2h.teamAId === a.id ? h2h.scoreA : h2h.scoreB;
+                    const bScore = h2h.teamAId === b.id ? h2h.scoreA : h2h.scoreB;
+                    if (bScore !== aScore) return bScore - aScore;
+                }
+                return a.name.localeCompare(b.name);
+            });
+
+            return stats;
+        }
+
+        function getTeamName(db, id) {
+            if (id === "BYE") return "BYE (Miễn đấu)";
+            if (!id) return "Chờ xác định...";
+            const t = db.tournaments.teams.find(x => x.id === id);
+            return t ? t.name : "Đội bóng";
+        }
+
+        function renderAll() {
+            const db = ensureTournamentSchema(getPitchData());
+            const t = db.tournaments;
+
+            const lowCount = db.products.filter(p => p.stock <= p.minStock).length;
+            document.getElementById('lowStockBadge').innerText = lowCount;
+
+            document.getElementById('tourNameDisplay').innerText = t.name;
+            document.getElementById('tourPrizeDisplay').innerText = t.prize;
+            document.getElementById('tourLocationDisplay').innerText = t.location;
+            document.getElementById('tourStatusBadge').innerText = t.status;
+            document.getElementById('uclBannerTitle').innerText = `ROAD TO FINAL • ${t.name.toUpperCase()}`;
+
+            const formatLabels = {
+                round_robin: "Đá xoay vòng",
+                group_knockout: "Vòng bảng (FIFA) + Vòng loại C1",
+                knockout: "Loại trực tiếp (Sơ đồ C1)"
+            };
+            document.getElementById('tourFormatBadge').innerText = formatLabels[t.format] || "Giải đấu";
+            document.getElementById('statTeamCount').innerText = t.teams.length;
+
+            const koMatchCount = (t.bracket?.rounds || []).reduce((acc, r) => acc + r.filter(m => !m.isBye).length, 0);
+            document.getElementById('statMatchCount').innerText =
+                t.format === 'knockout' ? koMatchCount : (t.groupMatches.length + (t.format === 'group_knockout' ? koMatchCount : 0));
+
+            document.getElementById('formatSelect').value = t.format;
+            document.getElementById('groupCountSelect').value = t.groupCount;
+            updateFormatUI();
+            renderTeamSetupList(t);
+            renderGroupsAndMatches(db);
+            renderUclBracket(db);
+            renderAwards(t);
+        }
+
+        function updateFormatUI() {
+            const fmt = document.getElementById('formatSelect').value;
+            document.getElementById('groupCountWrapper').classList.toggle('d-none', fmt !== 'group_knockout');
+        }
+
+        function onFormatChange() {
+            const db = getPitchData();
+            db.tournaments.format = document.getElementById('formatSelect').value;
+            savePitchData(db);
+            updateFormatUI();
+        }
+
+        function renderTeamSetupList(t) {
+            document.getElementById('teamListCount').innerText = t.teams.length;
+            const tbody = document.getElementById('teamSetupBody');
+            const groups = ["A", "B", "C", "D"];
+
+            if (t.teams.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">Chưa có đội bóng nào đăng ký</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = t.teams.map((team, idx) => `
+                <tr>
+                    <td class="fw-bold text-muted">${idx + 1}</td>
+                    <td class="fw-bold">${team.name}</td>
+                    <td>
+                        <div>${team.captain}</div>
+                        <small class="text-muted">${team.phone}</small>
+                    </td>
+                    <td>
+                        <select class="form-select form-select-sm" onchange="changeTeamGroup('${team.id}', this.value)">
+                            ${groups.map(g => `<option value="${g}" ${team.group === g ? 'selected' : ''}>Bảng ${g}</option>`).join('')}
+                        </select>
+                    </td>
+                    <td class="text-end">
+                        <button class="btn btn-outline-danger btn-sm py-0 px-2" onclick="deleteTeam('${team.id}')"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function changeTeamGroup(teamId, group) {
+            const db = getPitchData();
+            const team = db.tournaments.teams.find(x => x.id === teamId);
+            if (team) {
+                team.group = group;
+                savePitchData(db);
+            }
+        }
+
+        function runDraw(mode) {
+            const db = getPitchData();
+            const t = db.tournaments;
+            if (t.teams.length < 2) {
+                alert("Cần ít nhất 2 đội bóng để bốc thăm tạo lịch!");
+                return;
+            }
+
+            const fmt = document.getElementById('formatSelect').value;
+            t.format = fmt;
+            t.groupCount = Number(document.getElementById('groupCountSelect').value) || 2;
+
+            let workingTeams = mode === 'random' ? shuffleArray(t.teams) : [...t.teams];
+
+            if (fmt === 'round_robin') {
+                workingTeams.forEach(x => x.group = "Chung");
+                t.teams = workingTeams;
+                t.groupMatches = generateRoundRobinMatches(workingTeams, "Chung");
+                alert(`Đã tạo lịch đá xoay vòng cho ${workingTeams.length} đội (${t.groupMatches.length} trận)!`);
+            } else if (fmt === 'group_knockout') {
+                const groupLetters = ["A", "B", "C", "D"].slice(0, t.groupCount);
+                if (mode === 'random') {
+                    workingTeams.forEach((team, idx) => {
+                        team.group = groupLetters[idx % groupLetters.length];
+                    });
+                    t.teams = workingTeams;
+                }
+                t.groupMatches = [];
+                groupLetters.forEach(g => {
+                    const gTeams = t.teams.filter(x => x.group === g);
+                    t.groupMatches.push(...generateRoundRobinMatches(gTeams, g));
+                });
+                t.bracket = buildKnockoutBracket(workingTeams.slice(0, Math.min(workingTeams.length, groupLetters.length * 2)).map(x => x.id));
+                alert(`Đã chia ${t.teams.length} đội vào ${groupLetters.length} bảng (${t.groupMatches.length} trận vòng bảng)!`);
+            } else {
+                t.teams = workingTeams;
+                t.groupMatches = [];
+                t.bracket = buildKnockoutBracket(workingTeams.map(x => x.id));
+                alert(`Đã bốc thăm Sơ đồ loại trực tiếp kiểu C1 cho ${workingTeams.length} đội!`);
+                document.querySelector('[data-bs-target="#tab-bracket"]').click();
+            }
+
+            savePitchData(db);
+            renderAll();
+            if (fmt !== 'knockout') {
+                document.querySelector('[data-bs-target="#tab-groups"]').click();
+            }
+        }
+
+        function generateKnockoutFromAllTeams(isRandom) {
+            const db = getPitchData();
+            const teams = isRandom ? shuffleArray(db.tournaments.teams) : db.tournaments.teams;
+            if (teams.length < 2) return alert("Cần ít nhất 2 đội!");
+            db.tournaments.bracket = buildKnockoutBracket(teams.map(x => x.id));
+            savePitchData(db);
+            renderAll();
+        }
+
+        function renderGroupsAndMatches(db) {
+            const t = db.tournaments;
+            const tablesBox = document.getElementById('groupTablesContainer');
+            const matchesBox = document.getElementById('groupMatchesContainer');
+            const btnAdv = document.getElementById('btnAdvanceToC1');
+
+            if (t.format === 'knockout') {
+                tablesBox.innerHTML = `<div class="card card-custom p-5 text-center text-muted">Giải đang ở thể thức <strong>Loại trực tiếp</strong>. Chuyển sang Tab <strong>3. Sơ đồ Hạt giống (Kiểu C1)</strong> để theo dõi.</div>`;
+                matchesBox.innerHTML = `<div class="text-center text-muted py-4 small">Không có trận vòng bảng</div>`;
+                btnAdv.classList.add('d-none');
+                return;
+            }
+
+            btnAdv.classList.remove('d-none');
+
+            const groupNames = t.format === 'round_robin'
+                ? ["Chung"]
+                : [...new Set(t.teams.map(x => x.group))].sort();
+
+            tablesBox.innerHTML = groupNames.map(g => {
+                const gTeams = t.format === 'round_robin' ? t.teams : t.teams.filter(x => x.group === g);
+                const gMatches = t.groupMatches.filter(m => m.group === g);
+                const standings = calculateFifaStandings(gTeams, gMatches);
+                const qualifySlots = t.format === 'round_robin' ? 1 : 2;
+
+                return `
+                    <div class="card card-custom p-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold mb-0 text-success">
+                                ${g === "Chung" ? "Bảng Xếp Hạng Xoay Vòng" : `Bảng ${g}`}
+                            </h6>
+                            <span class="badge bg-success-subtle text-success">
+                                ${t.format === 'round_robin' ? 'Hạng 1 vô địch' : 'Top 2 vào vòng C1'}
+                            </span>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="fw-bold text-end" style="width: 38%;">${m.teamA}</div>
-                            <div class="text-center" style="width: 24%;">
-                                ${m.played 
-                                    ? `<span class="score-box">${m.scoreA} - ${m.scoreB}</span>` 
-                                    : `<span class="badge bg-secondary-subtle text-secondary">Chưa đá</span>`
-                                }
-                            </div>
-                            <div class="fw-bold text-start" style="width: 38%;">${m.teamB}</div>
-                        </div>
-                        <div class="text-end mt-2 pt-2 border-top">
-                            <button class="btn btn-sm btn-outline-success py-0 px-2" onclick="openScoreModal('${m.id}')">
-                                <i class="bi bi-pencil-square me-1"></i>Cập nhật tỷ số
-                            </button>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover align-middle small mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Đội bóng</th>
+                                        <th class="text-center">Trận</th>
+                                        <th class="text-center">T-H-B</th>
+                                        <th class="text-center">BT-BB</th>
+                                        <th class="text-center">HS</th>
+                                        <th class="text-center fw-bold">Điểm</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${standings.map((s, idx) => `
+                                        <tr class="${idx < qualifySlots ? 'qualify-row' : ''}">
+                                            <td><span class="badge ${idx === 0 ? 'bg-warning text-dark' : (idx < qualifySlots ? 'bg-success' : 'bg-light text-dark border')}">#${idx + 1}</span></td>
+                                            <td class="fw-bold">${s.name}</td>
+                                            <td class="text-center">${s.played}</td>
+                                            <td class="text-center">${s.won}-${s.drawn}-${s.lost}</td>
+                                            <td class="text-center">${s.gf}-${s.ga}</td>
+                                            <td class="text-center ${s.gd > 0 ? 'text-success' : (s.gd < 0 ? 'text-danger' : '')}">${s.gd > 0 ? '+' + s.gd : s.gd}</td>
+                                            <td class="text-center fw-bold text-primary fs-6">${s.points}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 `;
-            });
+            }).join('');
+
+            if (t.groupMatches.length === 0) {
+                matchesBox.innerHTML = `<div class="text-center text-muted py-4 small">Chưa có lịch thi đấu.</div>`;
+                return;
+            }
+
+            matchesBox.innerHTML = t.groupMatches.map(m => `
+                <div class="border rounded-3 p-2 px-3 mb-2 bg-light bg-opacity-50">
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span>${m.group === 'Chung' ? m.round : `Bảng ${m.group} • ${m.round}`}</span>
+                        <span><i class="bi bi-clock me-1"></i>${m.time}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold small text-truncate" style="max-width: 38%;">${getTeamName(db, m.teamAId)}</span>
+                        <span class="badge ${m.played ? 'bg-dark' : 'bg-secondary'} px-3 py-1">
+                            ${m.played ? `${m.scoreA} - ${m.scoreB}` : 'vs'}
+                        </span>
+                        <span class="fw-bold small text-truncate text-end" style="max-width: 38%;">${getTeamName(db, m.teamBId)}</span>
+                    </div>
+                    <div class="text-end mt-2">
+                        <button class="btn btn-outline-success btn-sm py-0 px-2" style="font-size: 0.72rem;"
+                            onclick="openScoreModal('group', '${m.id}')">
+                            <i class="bi bi-pencil-square me-1"></i>Cập nhật tỷ số
+                        </button>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        function openScoreModal(matchId) {
+        function advanceGroupWinnersToBracket() {
             const db = getPitchData();
-            const m = db.tournaments.matches.find(x => x.id === matchId);
+            const t = db.tournaments;
+            const groupNames = t.format === 'round_robin'
+                ? ["Chung"]
+                : [...new Set(t.teams.map(x => x.group))].sort();
+
+            const firstSeeds = [];
+            const secondSeeds = [];
+
+            groupNames.forEach(g => {
+                const gTeams = t.format === 'round_robin' ? t.teams : t.teams.filter(x => x.group === g);
+                const gMatches = t.groupMatches.filter(m => m.group === g);
+                const standings = calculateFifaStandings(gTeams, gMatches);
+
+                if (t.format === 'round_robin') {
+                    standings.slice(0, Math.min(4, standings.length)).forEach((s, i) => {
+                        if (i % 2 === 0) firstSeeds.push(s.id);
+                        else secondSeeds.push(s.id);
+                    });
+                } else {
+                    if (standings[0]) firstSeeds.push(standings[0].id);
+                    if (standings[1]) secondSeeds.push(standings[1].id);
+                }
+            });
+
+            const crossed = [];
+            const revSecond = [...secondSeeds].reverse();
+            for (let i = 0; i < Math.max(firstSeeds.length, revSecond.length); i++) {
+                if (firstSeeds[i]) crossed.push(firstSeeds[i]);
+                if (revSecond[i]) crossed.push(revSecond[i]);
+            }
+
+            if (crossed.length < 2) {
+                alert("Chưa đủ đội để lập sơ đồ vòng loại!");
+                return;
+            }
+
+            t.bracket = buildKnockoutBracket(crossed);
+            savePitchData(db);
+            renderAll();
+            alert(`Đã đẩy ${crossed.length} đội đi tiếp theo luật FIFA vào Sơ đồ C1!`);
+            document.querySelector('[data-bs-target="#tab-bracket"]').click();
+        }
+
+        function getRoundLabel(totalRounds, rIdx) {
+            const remain = totalRounds - rIdx;
+            if (remain === 1) return "CHUNG KẾT";
+            if (remain === 2) return "BÁN KẾT";
+            if (remain === 3) return "TỨ KẾT";
+            if (remain === 4) return "VÒNG 1/8";
+            return `VÒNG ${rIdx + 1}`;
+        }
+
+        function renderMatchCardHtml(db, m, rIdx, mIdx, isFinal = false) {
+            const nameA = getTeamName(db, m.teamAId);
+            const nameB = getTeamName(db, m.teamBId);
+            const winA = m.winnerId && m.winnerId === m.teamAId;
+            const winB = m.winnerId && m.winnerId === m.teamBId;
+            const penTextA = m.penA !== null ? ` (${m.penA})` : '';
+            const penTextB = m.penB !== null ? ` (${m.penB})` : '';
+
+            return `
+                <div class="ucl-match-box ${m.isBye ? 'is-bye' : ''} ${isFinal ? 'ucl-final-box' : ''}"
+                     onclick="openScoreModal('ko', '${m.id}', ${rIdx}, ${mIdx})">
+                    <div class="ucl-team-row ${winA ? 'winner' : ''}">
+                        <span class="ucl-team-name" title="${nameA}">${nameA}</span>
+                        <span class="ucl-score">${m.isBye && winA ? 'BYE' : (m.scoreA !== null ? m.scoreA + penTextA : '-')}</span>
+                    </div>
+                    <div class="ucl-team-row ${winB ? 'winner' : ''}">
+                        <span class="ucl-team-name" title="${nameB}">${nameB}</span>
+                        <span class="ucl-score">${m.isBye && winB ? 'BYE' : (m.scoreB !== null ? m.scoreB + penTextB : '-')}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderUclBracket(db) {
+            const container = document.getElementById('uclBracketContainer');
+            const bracket = db.tournaments.bracket;
+            if (!bracket || !bracket.rounds || bracket.rounds.length === 0) {
+                container.innerHTML = `<div class="text-center py-5 text-info">Chưa có sơ đồ nhánh đấu.</div>`;
+                return;
+            }
+
+            const rounds = bracket.rounds;
+            const totalRounds = rounds.length;
+            const finalMatch = rounds[totalRounds - 1][0];
+            const championName = bracket.championId ? getTeamName(db, bracket.championId) : "Chưa xác định";
+
+            let leftHtml = '';
+            let rightHtml = '';
+
+            for (let r = 0; r < totalRounds - 1; r++) {
+                const label = getRoundLabel(totalRounds, r);
+                const half = Math.ceil(rounds[r].length / 2);
+                const leftMatches = rounds[r].slice(0, half);
+                const rightMatches = rounds[r].slice(half);
+
+                leftHtml += `
+                    <div class="ucl-round-col">
+                        <div class="ucl-round-label">${label} (Nhánh Trái)</div>
+                        ${leftMatches.map((m, i) => renderMatchCardHtml(db, m, r, i)).join('')}
+                    </div>`;
+
+                rightHtml += `
+                    <div class="ucl-round-col">
+                        <div class="ucl-round-label">${label} (Nhánh Phải)</div>
+                        ${rightMatches.map((m, i) => renderMatchCardHtml(db, m, r, i + half)).join('')}
+                    </div>`;
+            }
+
+            const centerHtml = `
+                <div class="ucl-center-stage">
+                    <div class="ucl-trophy-glow">
+                        <i class="bi bi-trophy-fill fs-1 text-warning"></i>
+                    </div>
+                    <div class="badge bg-warning text-dark mb-2 px-3 py-1 fw-bold">TRẬN CHUNG KẾT</div>
+                    ${renderMatchCardHtml(db, finalMatch, totalRounds - 1, 0, true)}
+                    <div class="mt-3 text-center p-2 px-3 rounded-3 w-100" style="background: rgba(250, 204, 21, 0.15); border: 1px solid rgba(250, 204, 21, 0.4);">
+                        <div style="font-size: 0.7rem; color: #FDE047; letter-spacing: 1px;">NHÀ VÔ ĐỊCH</div>
+                        <div class="fw-bold text-white">${championName}</div>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = `
+                <div class="ucl-bracket-wrapper">
+                    ${totalRounds > 1 ? `<div class="ucl-side left-side">${leftHtml}</div>` : ''}
+                    ${centerHtml}
+                    ${totalRounds > 1 ? `<div class="ucl-side right-side">${rightHtml}</div>` : ''}
+                </div>
+            `;
+        }
+
+        function openScoreModal(type, matchId, rIdx = 0, mIdx = 0) {
+            const db = getPitchData();
+            let m = null;
+
+            if (type === 'group') {
+                m = db.tournaments.groupMatches.find(x => x.id === matchId);
+            } else {
+                m = db.tournaments.bracket.rounds[rIdx][mIdx];
+                if (!m || m.isBye || !m.teamAId || !m.teamBId || m.teamAId === "BYE" || m.teamBId === "BYE") {
+                    alert("Cặp đấu này chưa xác định đủ 2 đội hoặc là lượt miễn đấu (BYE)!");
+                    return;
+                }
+            }
             if (!m) return;
 
-            document.getElementById('editMatchId').value = m.id;
-            document.getElementById('matchInfoText').innerText = `${m.round} • ${m.time}`;
-            document.getElementById('labelTeamA').innerText = m.teamA;
-            document.getElementById('labelTeamB').innerText = m.teamB;
-            document.getElementById('inputScoreA').value = m.scoreA !== null ? m.scoreA : 0;
-            document.getElementById('inputScoreB').value = m.scoreB !== null ? m.scoreB : 0;
+            document.getElementById('scoreMatchType').value = type;
+            document.getElementById('scoreMatchId').value = matchId;
+            document.getElementById('scoreRoundIdx').value = rIdx;
+            document.getElementById('scoreMatchIdx').value = mIdx;
+
+            document.getElementById('scoreTeamAName').innerText = getTeamName(db, m.teamAId);
+            document.getElementById('scoreTeamBName').innerText = getTeamName(db, m.teamBId);
+            document.getElementById('scoreInputA').value = m.scoreA !== null ? m.scoreA : 0;
+            document.getElementById('scoreInputB').value = m.scoreB !== null ? m.scoreB : 0;
+            document.getElementById('penInputA').value = m.penA !== null ? m.penA : '';
+            document.getElementById('penInputB').value = m.penB !== null ? m.penB : '';
+
+            togglePenaltyBox();
             scoreModal.show();
         }
+
+        function togglePenaltyBox() {
+            const type = document.getElementById('scoreMatchType').value;
+            const sA = document.getElementById('scoreInputA').value;
+            const sB = document.getElementById('scoreInputB').value;
+            const showPen = type === 'ko' && sA !== '' && sB !== '' && Number(sA) === Number(sB);
+            document.getElementById('penaltyBox').classList.toggle('d-none', !showPen);
+        }
+
+        document.getElementById('scoreInputA').addEventListener('input', togglePenaltyBox);
+        document.getElementById('scoreInputB').addEventListener('input', togglePenaltyBox);
 
         function saveMatchScore(e) {
             e.preventDefault();
             const db = getPitchData();
-            const matchId = document.getElementById('editMatchId').value;
-            const sA = Number(document.getElementById('inputScoreA').value);
-            const sB = Number(document.getElementById('inputScoreB').value);
+            const type = document.getElementById('scoreMatchType').value;
+            const sA = Number(document.getElementById('scoreInputA').value);
+            const sB = Number(document.getElementById('scoreInputB').value);
 
-            const m = db.tournaments.matches.find(x => x.id === matchId);
-            if (!m) return;
-
-            // Nếu trận này chưa tính điểm trước đó thì cộng vào BXH
-            if (!m.played) {
-                const teamA = db.tournaments.teams.find(t => t.name === m.teamA);
-                const teamB = db.tournaments.teams.find(t => t.name === m.teamB);
-                if (teamA && teamB) {
-                    teamA.played++; teamB.played++;
-                    if (sA > sB) { teamA.won++; teamA.points += 3; teamB.lost++; }
-                    else if (sA < sB) { teamB.won++; teamB.points += 3; teamA.lost++; }
-                    else { teamA.drawn++; teamB.drawn++; teamA.points += 1; teamB.points += 1; }
+            if (type === 'group') {
+                const id = document.getElementById('scoreMatchId').value;
+                const m = db.tournaments.groupMatches.find(x => x.id === id);
+                if (m) {
+                    m.scoreA = sA;
+                    m.scoreB = sB;
+                    m.played = true;
                 }
-            }
+            } else {
+                const rIdx = Number(document.getElementById('scoreRoundIdx').value);
+                const mIdx = Number(document.getElementById('scoreMatchIdx').value);
+                const m = db.tournaments.bracket.rounds[rIdx][mIdx];
+                m.scoreA = sA;
+                m.scoreB = sB;
 
-            m.scoreA = sA;
-            m.scoreB = sB;
-            m.played = true;
+                if (sA > sB) {
+                    m.winnerId = m.teamAId;
+                    m.penA = null; m.penB = null;
+                } else if (sB > sA) {
+                    m.winnerId = m.teamBId;
+                    m.penA = null; m.penB = null;
+                } else {
+                    const pA = document.getElementById('penInputA').value;
+                    const pB = document.getElementById('penInputB').value;
+                    if (pA === '' || pB === '' || Number(pA) === Number(pB)) {
+                        alert("Trận loại trực tiếp hòa! Vui lòng nhập tỷ số luân lưu phân thắng bại.");
+                        return;
+                    }
+                    m.penA = Number(pA);
+                    m.penB = Number(pB);
+                    m.winnerId = m.penA > m.penB ? m.teamAId : m.teamBId;
+                }
+                propagateBracketWinners(db.tournaments.bracket);
+            }
 
             savePitchData(db);
             scoreModal.hide();
-            renderTournament();
+            renderAll();
+        }
+
+        function renderAwards(t) {
+            const teamOpts = t.teams.length > 0
+                ? t.teams.map(x => `<option value="${x.name}">${x.name}</option>`).join('')
+                : `<option value="Tự do">Chưa có đội</option>`;
+            document.querySelectorAll('.team-dropdown').forEach(sel => sel.innerHTML = teamOpts);
+
+            const scorers = [...t.awards.scorers].sort((a, b) => b.value - a.value);
+            const assists = [...t.awards.assists].sort((a, b) => b.value - a.value);
+            const gks = [...t.awards.goalkeepers].sort((a, b) => (b.cleanSheets - a.cleanSheets) || (a.conceded - b.conceded));
+
+            if (scorers[0]) {
+                document.getElementById('topScorerWinner').innerText = scorers[0].player;
+                document.getElementById('topScorerDetail').innerText = `${scorers[0].team} • ${scorers[0].value} bàn thắng`;
+            } else {
+                document.getElementById('topScorerWinner').innerText = "Chưa có dữ liệu";
+                document.getElementById('topScorerDetail').innerText = "";
+            }
+
+            if (assists[0]) {
+                document.getElementById('topAssistWinner').innerText = assists[0].player;
+                document.getElementById('topAssistDetail').innerText = `${assists[0].team} • ${assists[0].value} kiến tạo`;
+            } else {
+                document.getElementById('topAssistWinner').innerText = "Chưa có dữ liệu";
+                document.getElementById('topAssistDetail').innerText = "";
+            }
+
+            if (gks[0]) {
+                document.getElementById('bestGkWinner').innerText = gks[0].player;
+                document.getElementById('bestGkDetail').innerText = `${gks[0].team} • ${gks[0].cleanSheets} sạch lưới (${gks[0].conceded} bàn thua)`;
+            } else {
+                document.getElementById('bestGkWinner').innerText = "Chưa có dữ liệu";
+                document.getElementById('bestGkDetail').innerText = "";
+            }
+
+            document.getElementById('scorersList').innerHTML = scorers.map((x, i) => `
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom small">
+                    <div><strong>#${i + 1} ${x.player}</strong> <span class="text-muted">(${x.team})</span></div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-warning text-dark">${x.value} bàn</span>
+                        <button class="btn btn-link text-danger p-0" onclick="deleteAwardEntry('scorers', '${x.id}')"><i class="bi bi-x-circle"></i></button>
+                    </div>
+                </div>
+            `).join('') || `<div class="text-muted small text-center py-3">Chưa có dữ liệu</div>`;
+
+            document.getElementById('assistsList').innerHTML = assists.map((x, i) => `
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom small">
+                    <div><strong>#${i + 1} ${x.player}</strong> <span class="text-muted">(${x.team})</span></div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-info text-white">${x.value} KT</span>
+                        <button class="btn btn-link text-danger p-0" onclick="deleteAwardEntry('assists', '${x.id}')"><i class="bi bi-x-circle"></i></button>
+                    </div>
+                </div>
+            `).join('') || `<div class="text-muted small text-center py-3">Chưa có dữ liệu</div>`;
+
+            document.getElementById('goalkeepersList').innerHTML = gks.map((x, i) => `
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom small">
+                    <div>
+                        <strong>#${i + 1} ${x.player}</strong>
+                        <div class="text-muted" style="font-size:0.72rem;">${x.team} • Thủng lưới: ${x.conceded}</div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-success">${x.cleanSheets} sạch lưới</span>
+                        <button class="btn btn-link text-danger p-0" onclick="deleteAwardEntry('goalkeepers', '${x.id}')"><i class="bi bi-x-circle"></i></button>
+                    </div>
+                </div>
+            `).join('') || `<div class="text-muted small text-center py-3">Chưa có dữ liệu</div>`;
+        }
+
+        function addAwardEntry(e, type) {
+            e.preventDefault();
+            const db = getPitchData();
+            if (type === 'scorers') {
+                db.tournaments.awards.scorers.push({
+                    id: 'SC' + Date.now(),
+                    player: document.getElementById('scorerName').value.trim(),
+                    team: document.getElementById('scorerTeam').value,
+                    value: Number(document.getElementById('scorerVal').value)
+                });
+            } else if (type === 'assists') {
+                db.tournaments.awards.assists.push({
+                    id: 'AS' + Date.now(),
+                    player: document.getElementById('assistName').value.trim(),
+                    team: document.getElementById('assistTeam').value,
+                    value: Number(document.getElementById('assistVal').value)
+                });
+            } else {
+                db.tournaments.awards.goalkeepers.push({
+                    id: 'GK' + Date.now(),
+                    player: document.getElementById('gkName').value.trim(),
+                    team: document.getElementById('gkTeam').value,
+                    cleanSheets: Number(document.getElementById('gkClean').value),
+                    conceded: Number(document.getElementById('gkConceded').value)
+                });
+            }
+            savePitchData(db);
+            e.target.reset();
+            renderAll();
+        }
+
+        function deleteAwardEntry(type, id) {
+            const db = getPitchData();
+            db.tournaments.awards[type] = db.tournaments.awards[type].filter(x => x.id !== id);
+            savePitchData(db);
+            renderAll();
         }
 
         function addTeam(e) {
             e.preventDefault();
             const db = getPitchData();
             db.tournaments.teams.push({
-                id: 'T' + Date.now().toString().slice(-3),
-                name: document.getElementById('teamName').value,
-                captain: document.getElementById('teamCaptain').value,
-                phone: document.getElementById('teamPhone').value,
-                played: 0, won: 0, drawn: 0, lost: 0, gd: "0", points: 0
+                id: 'T' + Date.now().toString().slice(-4),
+                name: document.getElementById('newTeamName').value.trim(),
+                captain: document.getElementById('newTeamCaptain').value.trim(),
+                phone: document.getElementById('newTeamPhone').value.trim(),
+                group: "A"
             });
+            if (db.tournaments.teams.length >= 7 && db.tournaments.format === 'round_robin') {
+                db.tournaments.format = 'group_knockout';
+            }
             savePitchData(db);
             bootstrap.Modal.getInstance(document.getElementById('addTeamModal')).hide();
             e.target.reset();
-            renderTournament();
+            renderAll();
         }
 
-        function updateTourInfo(e) {
+        function deleteTeam(id) {
+            if (!confirm("Xóa đội này khỏi giải đấu?")) return;
+            const db = getPitchData();
+            db.tournaments.teams = db.tournaments.teams.filter(x => x.id !== id);
+            savePitchData(db);
+            renderAll();
+        }
+
+        function quickGenerateTeams(count) {
+            const sampleNames = [
+                "FC IT Đà Nẵng", "FC Bình Minh", "FC Ngân Hàng", "FC Xây Dựng Trẻ",
+                "FC Ánh Dương", "FC Sông Hàn", "FC Phủi Miền Trung", "FC Doanh Nhân",
+                "FC Hải Châu", "FC Sơn Trà", "FC Liên Chiểu", "FC Thanh Khê"
+            ];
+            const db = getPitchData();
+            db.tournaments.teams = Array.from({ length: count }, (_, i) => ({
+                id: `T0${i + 1}`,
+                name: sampleNames[i] || `FC Đội ${i + 1}`,
+                captain: `Đội trưởng ${i + 1}`,
+                phone: `09051234${String(10 + i)}`,
+                group: ["A", "B", "C", "D"][i % (count >= 9 ? 4 : 2)]
+            }));
+
+            if (count <= 6) {
+                db.tournaments.format = (count === 5) ? "knockout" : "round_robin";
+            } else {
+                db.tournaments.format = "group_knockout";
+                db.tournaments.groupCount = count >= 10 ? 4 : 2;
+            }
+
+            savePitchData(db);
+            renderAll();
+            runDraw('random');
+        }
+
+        function openConfigModal() {
+            const t = getPitchData().tournaments;
+            document.getElementById('cfgTourName').value = t.name;
+            document.getElementById('cfgTourPrize').value = t.prize;
+            document.getElementById('cfgTourLocation').value = t.location || "";
+            document.getElementById('cfgTourStatus').value = t.status;
+            configModal.show();
+        }
+
+        function saveTournamentConfig(e) {
             e.preventDefault();
             const db = getPitchData();
-            db.tournaments.name = document.getElementById('inputTourName').value;
-            db.tournaments.prize = document.getElementById('inputTourPrize').value;
-            db.tournaments.status = document.getElementById('inputTourStatus').value;
+            db.tournaments.name = document.getElementById('cfgTourName').value.trim();
+            db.tournaments.prize = document.getElementById('cfgTourPrize').value.trim();
+            db.tournaments.location = document.getElementById('cfgTourLocation').value.trim();
+            db.tournaments.status = document.getElementById('cfgTourStatus').value;
             savePitchData(db);
-            bootstrap.Modal.getInstance(document.getElementById('createTourModal')).hide();
-            renderTournament();
+            configModal.hide();
+            renderAll();
         }
 
-        renderTournament();
+        renderAll();
     </script>
 </body>
 </html>
