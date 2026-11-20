@@ -403,11 +403,17 @@
         function populatePitchSelect(selectedPitchId) {
             const db = getPitchData();
             const sel = document.getElementById('bkPitchId');
-            sel.innerHTML = db.pitches
-                .filter(p => p.status !== 'maintenance')
-                .map(p => `<option value="${p.id}" ${p.id === selectedPitchId ? 'selected' : ''}>${p.name} (${p.type})</option>`)
-                .join('');
-        }
+            const activePitches = (db.pitches || []).filter(p => p.status !== 'maintenance');
+
+            if (activePitches.length === 0) {
+                sel.innerHTML = `<option value="">-- Không có sân nào đang mở --</option>`;
+        return;
+    }
+
+    sel.innerHTML = activePitches
+        .map(p => `<option value="${p.id}" ${p.id === selectedPitchId ? 'selected' : ''}>${p.name} (${p.type})</option>`)
+        .join('');
+}
 
         function updateModalPricePreview() {
             const db = getPitchData();

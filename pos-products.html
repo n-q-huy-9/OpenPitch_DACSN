@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Lý Hàng Hóa & Bán Hàng - openPitch</title>
+    <title>Quản Lý Hàng Hóa & Bán Hàng (POS) - openPitch</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/style.css">
@@ -13,11 +13,16 @@
             border: 1px solid #E2E8F0;
             border-radius: 12px;
             transition: all 0.15s ease;
+            position: relative;
         }
         .product-card:hover {
             border-color: #16A34A;
             background-color: #F0FDF4;
             transform: translateY(-2px);
+        }
+        .product-card.is-promo {
+            border-color: #F59E0B;
+            background-color: #FFFBEB;
         }
         .pos-bill {
             position: sticky;
@@ -53,21 +58,26 @@
             <li class="nav-item"><a href="tournaments.html" class="nav-link"><i class="bi bi-trophy"></i> Quản lý giải đấu</a></li>
         </ul>
 
-        <!-- <button onclick="resetDemoData()" class="btn btn-outline-secondary btn-sm mt-auto text-light border-secondary">
-            <i class="bi bi-arrow-counterclockwise me-1"></i> Khôi phục dữ liệu mẫu
-        </button> -->
+        <a href="login.html" class="btn btn-outline-danger btn-sm mt-auto">
+            <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
+        </a>
     </aside>
 
     <!-- MAIN CONTENT -->
     <div class="main-content">
-        <header class="topbar d-flex align-items-center justify-content-between px-4 sticky-top">
+        <header class="topbar d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 sticky-top">
             <div>
-                <h5 class="mb-0 fw-bold">Quản Lý Hàng Hóa & Bán Hàng Tại Sân (POS)</h5>
-                <small class="text-muted">Quản lý thực đơn nước uống, đồ ăn, phụ kiện và lập hóa đơn bán hàng nhanh</small>
+                <h5 class="mb-0 fw-bold">Quản Lý Hàng Hóa, Khuyến Mãi &amp; Bán Hàng (POS)</h5>
+                <small class="text-muted">Bán hàng tại sân, ưu tiên đẩy hàng khuyến mãi cận date / tồn lâu và áp dụng Voucher</small>
             </div>
-            <button class="btn btn-pitch btn-sm px-3 py-2" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                <i class="bi bi-plus-lg me-1"></i> Thêm sản phẩm mới
-            </button>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-warning text-dark btn-sm px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#promoModal">
+                    <i class="bi bi-ticket-perforated-fill me-1"></i> Tạo mã khuyến mãi
+                </button>
+                <button class="btn btn-pitch btn-sm px-3 py-2" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                    <i class="bi bi-plus-lg me-1"></i> Thêm sản phẩm mới
+                </button>
+            </div>
         </header>
 
         <main class="p-4">
@@ -75,13 +85,16 @@
                 <!-- CỘT TRÁI (8 CỘT): DANH MỤC SẢN PHẨM -->
                 <div class="col-lg-8">
                     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-                        <div class="btn-group" role="group">
-                            <button class="btn btn-outline-secondary btn-sm active" onclick="filterCategory('all', this)">Tất cả mặt hàng</button>
-                            <button class="btn btn-outline-secondary btn-sm" onclick="filterCategory('Nước uống', this)">Nước uống</button>
-                            <button class="btn btn-outline-secondary btn-sm" onclick="filterCategory('Đồ ăn', this)">Đồ ăn nhẹ</button>
-                            <button class="btn btn-outline-secondary btn-sm" onclick="filterCategory('Phụ kiện', this)">Phụ kiện bóng đá</button>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button class="btn btn-outline-secondary active" onclick="filterCategory('all', this)">Tất cả</button>
+                            <button class="btn btn-outline-warning text-dark fw-semibold" onclick="filterCategory('promo', this)">
+                                <i class="bi bi-fire text-danger me-1"></i>Đang KM / Cần đẩy bán
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="filterCategory('Nước uống', this)">Nước uống</button>
+                            <button class="btn btn-outline-secondary" onclick="filterCategory('Đồ ăn', this)">Đồ ăn nhẹ</button>
+                            <button class="btn btn-outline-secondary" onclick="filterCategory('Phụ kiện', this)">Phụ kiện</button>
                         </div>
-                        <span class="small text-muted"><i class="bi bi-hand-index-thumb me-1"></i> Bấm vào sản phẩm để thêm vào hóa đơn</span>
+                        <span class="small text-muted"><i class="bi bi-hand-index-thumb me-1"></i> Bấm sản phẩm để thêm vào hóa đơn</span>
                     </div>
 
                     <div class="row g-3" id="productGrid"></div>
@@ -101,15 +114,29 @@
                         </div>
 
                         <!-- Danh sách món đã chọn -->
-                        <div id="cartItemsContainer" class="mb-3" style="max-height: 290px; overflow-y: auto;"></div>
+                        <div id="cartItemsContainer" class="mb-3" style="max-height: 250px; overflow-y: auto;"></div>
 
-                        <div class="border-top pt-3">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span class="fw-semibold">Tổng tiền thanh toán:</span>
+                        <!-- Chọn Voucher khuyến mãi hóa đơn -->
+                        <div class="mb-3 pt-2 border-top">
+                            <label class="form-label small fw-semibold"><i class="bi bi-ticket-perforated text-warning me-1"></i> Chương trình khuyến mãi hóa đơn:</label>
+                            <select id="posVoucherSelect" class="form-select form-select-sm" onchange="renderCart()"></select>
+                        </div>
+
+                        <div class="border-top pt-2 small">
+                            <div class="d-flex justify-content-between text-muted mb-1">
+                                <span>Tạm tính (Giá gốc):</span>
+                                <span id="cartGrossAmount">0đ</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-danger mb-1">
+                                <span>Giảm giá KM (Cận date / Voucher):</span>
+                                <span id="cartDiscountAmount">-0đ</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-3 pt-2 border-top">
+                                <span class="fw-bold fs-6">Thực thu:</span>
                                 <h4 class="fw-bold text-success mb-0" id="cartTotalAmount">0đ</h4>
                             </div>
                             <button class="btn btn-pitch w-100 py-2" onclick="checkoutPOS()">
-                                <i class="bi bi-check2-circle me-1"></i> Thanh toán & Xuất kho
+                                <i class="bi bi-check2-circle me-1"></i> Thanh toán &amp; Xuất kho
                             </button>
                         </div>
                     </div>
@@ -131,8 +158,8 @@
                         <label class="form-label small fw-semibold">Tên sản phẩm</label>
                         <input type="text" id="newProdName" class="form-control" placeholder="VD: Nước chanh dây đóng chai" required>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-6">
+                    <div class="row g-2 mb-3">
+                        <div class="col-4">
                             <label class="form-label small fw-semibold">Danh mục</label>
                             <select id="newProdCat" class="form-select">
                                 <option value="Nước uống">Nước uống</option>
@@ -140,12 +167,16 @@
                                 <option value="Phụ kiện">Phụ kiện</option>
                             </select>
                         </div>
-                        <div class="col-6">
+                        <div class="col-4">
                             <label class="form-label small fw-semibold">Đơn vị tính</label>
                             <input type="text" id="newProdUnit" class="form-control" value="Chai" required>
                         </div>
+                        <div class="col-4">
+                            <label class="form-label small fw-semibold">Hạn sử dụng</label>
+                            <input type="date" id="newProdExpiry" class="form-control">
+                        </div>
                     </div>
-                    <div class="row mb-3">
+                    <div class="row g-2 mb-3">
                         <div class="col-6">
                             <label class="form-label small fw-semibold">Giá nhập vốn (VNĐ)</label>
                             <input type="number" id="newProdCost" class="form-control" value="6000" step="1000" required>
@@ -155,7 +186,7 @@
                             <input type="number" id="newProdPrice" class="form-control" value="12000" step="1000" required>
                         </div>
                     </div>
-                    <div class="row">
+                    <div class="row g-2">
                         <div class="col-6">
                             <label class="form-label small fw-semibold">Số lượng tồn ban đầu</label>
                             <input type="number" id="newProdStock" class="form-control" value="24" required>
@@ -174,23 +205,72 @@
         </div>
     </div>
 
+    <!-- MODAL TẠO MÃ KHUYẾN MÃI HÓA ĐƠN -->
+    <div class="modal fade" id="promoModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <form class="modal-content" onsubmit="addPromotion(event)">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Tạo Chương trình Khuyến mãi Hóa đơn</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-2 mb-3">
+                        <div class="col-5">
+                            <label class="form-label small fw-semibold">Mã Voucher</label>
+                            <input type="text" id="promoCode" class="form-control text-uppercase" placeholder="VD: SALE15" required>
+                        </div>
+                        <div class="col-7">
+                            <label class="form-label small fw-semibold">Tên chương trình</label>
+                            <input type="text" id="promoName" class="form-control" placeholder="VD: Giảm 15% cho đội đặt giải" required>
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-4">
+                            <label class="form-label small fw-semibold">Loại giảm</label>
+                            <select id="promoType" class="form-select">
+                                <option value="percent">Theo %</option>
+                                <option value="fixed">Tiền mặt (VNĐ)</option>
+                            </select>
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label small fw-semibold">Giá trị giảm</label>
+                            <input type="number" id="promoValue" class="form-control" min="1" value="15" required>
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label small fw-semibold">Đơn tối thiểu</label>
+                            <input type="number" id="promoMinOrder" class="form-control" min="0" step="10000" value="100000" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-pitch">Lưu mã khuyến mãi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/data.js"></script>
     <script>
         let currentCat = 'all';
         let cart = [];
 
-        // Tự động nạp danh sách các ca sân thật đang có trong bookings để gắn hóa đơn
-        function renderCustomerOptions() {
+        function renderCustomerAndVoucherOptions() {
             const db = getPitchData();
             const select = document.getElementById('posCustomerSelect');
             select.innerHTML = `<option value="">Khách mua lẻ tại quầy</option>`;
-
             db.bookings.forEach(b => {
                 const pitch = db.pitches.find(p => p.id === b.pitchId);
-                const slot = db.timeSlots.find(s => s.id === b.slotId);
-                const label = `${pitch ? pitch.name : b.pitchId} - ${b.customer} (${slot ? slot.label : ''})`;
+                const label = `${pitch ? pitch.name : b.pitchId} - ${b.customer} (${getBookingTimeLabel(db, b)})`;
                 select.innerHTML += `<option value="${b.id}">${label}</option>`;
+            });
+
+            const vSel = document.getElementById('posVoucherSelect');
+            vSel.innerHTML = `<option value="">-- Không áp dụng Voucher --</option>`;
+            (db.promotions || []).filter(pm => pm.active).forEach(pm => {
+                const desc = pm.type === 'percent' ? `-${pm.value}%` : `-${formatVND(pm.value)}`;
+                vSel.innerHTML += `<option value="${pm.code}">${pm.code} (${desc} • Đơn từ ${formatVND(pm.minOrder)})</option>`;
             });
         }
 
@@ -199,29 +279,55 @@
             const grid = document.getElementById('productGrid');
             grid.innerHTML = '';
 
-            // Cập nhật badge cảnh báo trên sidebar
-            const lowStockCount = db.products.filter(p => p.stock <= p.minStock).length;
-            document.getElementById('lowStockBadge').innerText = lowStockCount;
+            // Badge cảnh báo tổng trên Sidebar
+            const alertCount = db.products.filter(p => {
+                const st = getProductStatus(p);
+                return st.isLowStock || st.needsPromo;
+            }).length;
+            document.getElementById('lowStockBadge').innerText = alertCount;
 
-            const list = db.products.filter(p => currentCat === 'all' || p.category === currentCat);
+            const list = db.products.filter(p => {
+                if (currentCat === 'all') return true;
+                if (currentCat === 'promo') return Number(p.discountPercent || 0) > 0 || getProductStatus(p).needsPromo;
+                return p.category === currentCat;
+            });
+
+            if (list.length === 0) {
+                grid.innerHTML = `<div class="col-12"><div class="card card-custom p-4 text-center text-muted small">Không có sản phẩm nào trong danh mục này.</div></div>`;
+                return;
+            }
 
             list.forEach(p => {
-                const isLow = p.stock <= p.minStock;
+                const st = getProductStatus(p);
+                const hasDisc = Number(p.discountPercent || 0) > 0;
+                const effPrice = getEffectiveSellPrice(p);
+
                 grid.innerHTML += `
                     <div class="col-md-4">
-                        <div class="card product-card p-3 h-100" onclick="addToCart('${p.id}')">
+                        <div class="card product-card ${hasDisc ? 'is-promo' : ''} p-3 h-100 d-flex flex-column" onclick="addToCart('${p.id}')">
                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div class="icon-box bg-success bg-opacity-10 text-success">
+                                <div class="icon-box ${hasDisc ? 'bg-warning bg-opacity-25 text-warning-emphasis' : 'bg-success bg-opacity-10 text-success'}">
                                     <i class="bi ${p.icon || 'bi-box'}"></i>
                                 </div>
-                                <span class="badge ${isLow ? 'bg-danger' : 'bg-light text-secondary border'}">
+                                <span class="badge ${st.isLowStock ? 'bg-danger' : 'bg-light text-secondary border'}">
                                     Kho: ${p.stock} ${p.unit}
                                 </span>
                             </div>
+
+                            ${hasDisc ? `<span class="badge bg-danger mb-1 align-self-start"><i class="bi bi-fire me-1"></i>-${p.discountPercent}% ${p.promoLabel || 'Khuyến mãi'}</span>` : ''}
+                            ${st.isNearExpiry ? `<span class="text-danger fw-semibold" style="font-size: 0.72rem;"><i class="bi bi-hourglass-split"></i> Cận HSD: còn ${st.daysToExpiry} ngày</span>` : ''}
+                            ${st.isSlowMoving ? `<span class="text-primary fw-semibold" style="font-size: 0.72rem;"><i class="bi bi-clock-history"></i> Tồn lâu ${st.daysSinceSold} ngày</span>` : ''}
+
                             <span class="text-muted" style="font-size: 0.75rem;">${p.category}</span>
                             <h6 class="fw-bold mb-2">${p.name}</h6>
+
                             <div class="mt-auto d-flex justify-content-between align-items-center pt-2 border-top">
-                                <span class="fw-bold text-success">${formatVND(p.sellPrice)}</span>
+                                <div>
+                                    ${hasDisc
+                                        ? `<del class="text-muted small me-1">${formatVND(p.sellPrice)}</del><span class="fw-bold text-danger">${formatVND(effPrice)}</span>`
+                                        : `<span class="fw-bold text-success">${formatVND(p.sellPrice)}</span>`
+                                    }
+                                </div>
                                 <div class="d-flex gap-1">
                                     <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2"
                                         onclick="event.stopPropagation(); editProductPrice('${p.id}')">
@@ -240,21 +346,17 @@
             const db = getPitchData();
             const prod = db.products.find(p => p.id === prodId);
             if (!prod) return;
-
-            const input = prompt(`Nhập giá bán mới cho "${prod.name}" (VNĐ):`, prod.sellPrice);
+            const input = prompt(`Nhập giá bán gốc mới cho "${prod.name}" (VNĐ):`, prod.sellPrice);
             if (input !== null && input.trim() !== '' && !isNaN(input) && Number(input) >= 0) {
                 prod.sellPrice = Number(input);
                 savePitchData(db);
-
-                // Cập nhật luôn giá nếu sản phẩm đang nằm sẵn trong giỏ hàng
                 const inCart = cart.find(c => c.id === prodId);
                 if (inCart) {
-                    inCart.price = prod.sellPrice;
+                    inCart.originalPrice = prod.sellPrice;
+                    inCart.price = getEffectiveSellPrice(prod);
                     renderCart();
                 }
-
                 renderProducts();
-                alert('Đã cập nhật giá bán mới! Doanh thu & biểu đồ ở trang chủ sẽ tự động tính lại theo giá này.');
             }
         }
 
@@ -272,7 +374,7 @@
                 alert('Sản phẩm này đã hết hàng trong kho!');
                 return;
             }
-
+            const effPrice = getEffectiveSellPrice(prod);
             const item = cart.find(c => c.id === prodId);
             if (item) {
                 if (item.qty >= prod.stock) {
@@ -281,7 +383,14 @@
                 }
                 item.qty++;
             } else {
-                cart.push({ id: prod.id, name: prod.name, price: prod.sellPrice, qty: 1, unit: prod.unit });
+                cart.push({
+                    id: prod.id,
+                    name: prod.name,
+                    originalPrice: Number(prod.sellPrice),
+                    price: effPrice,
+                    qty: 1,
+                    unit: prod.unit
+                });
             }
             renderCart();
         }
@@ -291,16 +400,12 @@
             const prod = db.products.find(p => p.id === prodId);
             const item = cart.find(c => c.id === prodId);
             if (!item) return;
-
             if (delta > 0 && prod && item.qty >= prod.stock) {
                 alert('Số lượng chọn vượt quá tồn kho hiện tại!');
                 return;
             }
-
             item.qty += delta;
-            if (item.qty <= 0) {
-                cart = cart.filter(c => c.id !== prodId);
-            }
+            if (item.qty <= 0) cart = cart.filter(c => c.id !== prodId);
             renderCart();
         }
 
@@ -309,36 +414,63 @@
             renderCart();
         }
 
+        function computeCartTotals() {
+            const db = getPitchData();
+            let gross = 0;
+            let netItems = 0;
+            cart.forEach(item => {
+                gross += item.originalPrice * item.qty;
+                netItems += item.price * item.qty;
+            });
+            const productDiscount = Math.max(0, gross - netItems);
+
+            let voucherDiscount = 0;
+            const voucherCode = document.getElementById('posVoucherSelect').value;
+            if (voucherCode) {
+                const pm = (db.promotions || []).find(x => x.code === voucherCode);
+                if (pm && netItems >= Number(pm.minOrder || 0)) {
+                    voucherDiscount = pm.type === 'percent'
+                        ? Math.round(netItems * (Number(pm.value) / 100))
+                        : Math.min(netItems, Number(pm.value));
+                }
+            }
+
+            const totalDiscount = productDiscount + voucherDiscount;
+            const finalTotal = Math.max(0, netItems - voucherDiscount);
+            return { gross, productDiscount, voucherCode, voucherDiscount, totalDiscount, finalTotal };
+        }
+
         function renderCart() {
             const container = document.getElementById('cartItemsContainer');
-            const totalEl = document.getElementById('cartTotalAmount');
-
             if (cart.length === 0) {
                 container.innerHTML = `<div class="text-center text-muted py-4 small">Chưa có mặt hàng nào được chọn</div>`;
-                totalEl.innerText = '0đ';
+                document.getElementById('cartGrossAmount').innerText = '0đ';
+                document.getElementById('cartDiscountAmount').innerText = '-0đ';
+                document.getElementById('cartTotalAmount').innerText = '0đ';
                 return;
             }
 
-            let total = 0;
-            container.innerHTML = '';
-            cart.forEach(item => {
-                const sub = item.price * item.qty;
-                total += sub;
-                container.innerHTML += `
-                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom small">
-                        <div style="max-width: 55%;">
-                            <div class="fw-semibold text-truncate">${item.name}</div>
-                            <span class="text-muted">${formatVND(item.price)} / ${item.unit}</span>
-                        </div>
-                        <div class="d-flex align-items-center gap-1">
-                            <button class="btn btn-outline-secondary btn-sm py-0 px-2" onclick="changeQty('${item.id}', -1)">-</button>
-                            <span class="fw-bold px-1">${item.qty}</span>
-                            <button class="btn btn-outline-secondary btn-sm py-0 px-2" onclick="changeQty('${item.id}', 1)">+</button>
-                        </div>
+            container.innerHTML = cart.map(item => `
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom small">
+                    <div style="max-width: 58%;">
+                        <div class="fw-semibold text-truncate">${item.name}</div>
+                        <span class="text-muted">
+                            ${item.price < item.originalPrice ? `<del class="me-1">${formatVND(item.originalPrice)}</del>` : ''}
+                            <strong class="${item.price < item.originalPrice ? 'text-danger' : 'text-dark'}">${formatVND(item.price)}</strong> / ${item.unit}
+                        </span>
                     </div>
-                `;
-            });
-            totalEl.innerText = formatVND(total);
+                    <div class="d-flex align-items-center gap-1">
+                        <button class="btn btn-outline-secondary btn-sm py-0 px-2" onclick="changeQty('${item.id}', -1)">-</button>
+                        <span class="fw-bold px-1">${item.qty}</span>
+                        <button class="btn btn-outline-secondary btn-sm py-0 px-2" onclick="changeQty('${item.id}', 1)">+</button>
+                    </div>
+                </div>
+            `).join('');
+
+            const calc = computeCartTotals();
+            document.getElementById('cartGrossAmount').innerText = formatVND(calc.gross);
+            document.getElementById('cartDiscountAmount').innerText = `-${formatVND(calc.totalDiscount)}`;
+            document.getElementById('cartTotalAmount').innerText = formatVND(calc.finalTotal);
         }
 
         function checkoutPOS() {
@@ -350,42 +482,48 @@
             const select = document.getElementById('posCustomerSelect');
             const selectedBookingId = select.value || null;
             const customerLabel = select.options[select.selectedIndex].text;
+            const today = getTodayISO();
             const nowStr = new Date().toLocaleString('vi-VN');
+            const calc = computeCartTotals();
 
-            // 1. Lưu đơn bán hàng thật vào posOrders để Dashboard tự tính doanh thu, % và biểu đồ
             db.posOrders.unshift({
                 id: 'POS' + Date.now().toString().slice(-3),
-                date: getTodayISO(),
+                date: today,
                 customer: customerLabel,
                 bookingId: selectedBookingId,
                 dayIndex: getTodayDayIndex(),
                 paid: true,
                 time: nowStr,
+                voucherCode: calc.voucherCode || '',
+                voucherDiscount: calc.voucherDiscount,
                 items: cart.map(item => ({
                     productId: item.id,
                     qty: item.qty,
+                    originalPrice: item.originalPrice,
                     unitPrice: item.price
                 }))
             });
 
-            // 2. Trừ kho & Ghi lịch sử xuất kho
+            // Trừ kho, cập nhật ngày bán gần nhất & ghi log xuất kho
             cart.forEach(item => {
                 const prod = db.products.find(p => p.id === item.id);
                 if (prod) {
                     prod.stock = Math.max(0, prod.stock - item.qty);
+                    prod.lastSoldDate = today;
                     db.inventoryLogs.unshift({
-                        id: 'XK' + Math.floor(Math.random() * 900 + 100),
+                        id: 'XK' + Date.now().toString().slice(-3) + Math.floor(Math.random() * 10),
+                        date: today,
                         time: nowStr,
                         productName: prod.name,
                         type: 'EXPORT',
                         qty: item.qty,
-                        note: 'Bán hàng POS: ' + customerLabel
+                        note: `Bán hàng POS: ${customerLabel}${item.price < item.originalPrice ? ' (Áp giá KM)' : ''}`
                     });
                 }
             });
 
             savePitchData(db);
-            alert('Đã thanh toán hóa đơn! Tồn kho, Doanh thu và Biểu đồ đã tự động cập nhật.');
+            alert(`Đã thanh toán ${formatVND(calc.finalTotal)} (Tiết kiệm KM: ${formatVND(calc.totalDiscount)})! Tồn kho & Doanh thu đã tự động cập nhật.`);
             clearCart();
             renderProducts();
         }
@@ -395,13 +533,18 @@
             const db = getPitchData();
             db.products.push({
                 id: 'SP' + Date.now().toString().slice(-3),
-                name: document.getElementById('newProdName').value,
+                name: document.getElementById('newProdName').value.trim(),
                 category: document.getElementById('newProdCat').value,
-                unit: document.getElementById('newProdUnit').value,
+                unit: document.getElementById('newProdUnit').value.trim(),
+                supplierId: (db.suppliers && db.suppliers[0]) ? db.suppliers[0].id : 'NCC01',
                 costPrice: Number(document.getElementById('newProdCost').value),
                 sellPrice: Number(document.getElementById('newProdPrice').value),
                 stock: Number(document.getElementById('newProdStock').value),
                 minStock: Number(document.getElementById('newProdMin').value),
+                expiryDate: document.getElementById('newProdExpiry').value || '',
+                lastSoldDate: getTodayISO(),
+                discountPercent: 0,
+                promoLabel: '',
                 icon: 'bi-cup-straw'
             });
             savePitchData(db);
@@ -410,7 +553,26 @@
             renderProducts();
         }
 
-        renderCustomerOptions();
+        function addPromotion(e) {
+            e.preventDefault();
+            const db = getPitchData();
+            db.promotions.push({
+                id: 'KM' + Date.now().toString().slice(-3),
+                code: document.getElementById('promoCode').value.trim().toUpperCase(),
+                name: document.getElementById('promoName').value.trim(),
+                type: document.getElementById('promoType').value,
+                value: Number(document.getElementById('promoValue').value),
+                minOrder: Number(document.getElementById('promoMinOrder').value),
+                active: true
+            });
+            savePitchData(db);
+            bootstrap.Modal.getInstance(document.getElementById('promoModal')).hide();
+            e.target.reset();
+            renderCustomerAndVoucherOptions();
+            alert('Đã tạo mã khuyến mãi mới thành công!');
+        }
+
+        renderCustomerAndVoucherOptions();
         renderProducts();
         renderCart();
     </script>
