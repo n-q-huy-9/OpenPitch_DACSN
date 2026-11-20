@@ -1,6 +1,7 @@
 // =========================================================
 // KHO DỮ LIỆU & NGHIỆP VỤ KINH DOANH HỆ THỐNG OPENPITCH
-// (Nhà cung cấp, Kho FEFO/HSD, Khuyến mãi, Doanh thu & Sổ quỹ)
+// (Nhà cung cấp, Kho FEFO/HSD đồ ăn báo trước 1 ngày,
+//  Khuyến mãi chọn món & Voucher, Doanh thu, Lợi nhuận, Sổ quỹ)
 // =========================================================
 
 function getTodayISO() {
@@ -18,6 +19,13 @@ function addDaysISO(days) {
     const m = String(dt.getMonth() + 1).padStart(2, "0");
     const d = String(dt.getDate()).padStart(2, "0");
     return `${y}-${m}-${d}`;
+}
+
+function formatDateVN(isoDate) {
+    if (!isoDate || typeof isoDate !== "string") return "";
+    const parts = isoDate.split("-");
+    if (parts.length !== 3) return isoDate;
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }
 
 function getCurrentMonthISO() {
@@ -41,7 +49,6 @@ function timeToMinutes(hhmm) {
     return h * 60 + m;
 }
 
-// Tính số ngày còn lại đến hạn sử dụng (null nếu không có HSD)
 function getDaysUntil(isoDate) {
     if (!isoDate) return null;
     const today = new Date(getTodayISO() + "T00:00:00");
@@ -49,7 +56,6 @@ function getDaysUntil(isoDate) {
     return Math.round((target - today) / (1000 * 60 * 60 * 24));
 }
 
-// Tính số ngày kể từ lần bán gần nhất
 function getDaysSince(isoDate) {
     if (!isoDate) return 0;
     const today = new Date(getTodayISO() + "T00:00:00");
@@ -57,27 +63,66 @@ function getDaysSince(isoDate) {
     return Math.max(0, Math.round((today - past) / (1000 * 60 * 60 * 24)));
 }
 
-// Đánh giá 3 trạng thái cảnh báo tồn kho cho từng sản phẩm
+// Đánh giá 3 cấp độ cảnh báo tồn kho:
+// - Đồ ăn: cảnh báo trước 1 ngày hết hạn (daysToExpiry <= 1)
+// - Nước uống / hàng khác có HSD: cảnh báo trước 15 ngày (daysToExpiry <= 15)
+// - Hàng tồn lâu / sắp lỗi thời: >= 30 ngày không phát sinh lượt bán
 function getProductStatus(product) {
-    const isLowStock = Number(product.stock) <= Number(product.minStock);
+    const stock = Number(product.stock || 0);
+    const isFood = product.category === "Đồ ăn";
+    const isLowStock = stock <= Number(product.minStock || 0);
     const daysToExpiry = getDaysUntil(product.expiryDate);
-    const isExpired = daysToExpiry !== null && daysToExpiry < 0 && Number(product.stock) > 0;
-    const isNearExpiry = daysToExpiry !== null && daysToExpiry >= 0 && daysToExpiry <= 15 && Number(product.stock) > 0;
+    const expiryThreshold = isFood ? 1 : 15;
+
+    const isExpired = daysToExpiry !== null && daysToExpiry < 0 && stock > 0;
+    const isNearExpiry = daysToExpiry !== null && daysToExpiry >= 0 && daysToExpiry <= expiryThreshold && stock > 0;
+    const isFoodUrgent = isFood && (isNearExpiry || isExpired);
+
     const daysSinceSold = getDaysSince(product.lastSoldDate);
-    const isSlowMoving = daysSinceSold >= 30 && Number(product.stock) > 0;
+    const isSlowMoving = daysSinceSold >= 30 && stock > 0;
+
+    let expiryStatusText = "";
+    if (daysToExpiry !== null) {
+        if (daysToExpiry < 0) expiryStatusText = `Đã hết hạn ${Math.abs(daysToExpiry)} ngày!`;
+        else if (daysToExpiry === 0) expiryStatusText = "Hết hạn hôm nay!";
+        else if (daysToExpiry === 1) expiryStatusText = "Hết hạn ngày mai (còn 1 ngày)!";
+        else expiryStatusText = `Còn ${daysToExpiry} ngày`;
+    }
 
     return {
+        isFood,
         isLowStock,
         isExpired,
         isNearExpiry,
+        isFoodUrgent,
         isSlowMoving,
         daysToExpiry,
         daysSinceSold,
+        expiryStatusText,
         needsPromo: isNearExpiry || isSlowMoving || isExpired
     };
 }
 
-// Tính giá bán thực tế sau khi áp dụng % khuyến mãi sản phẩm
+// Tổng hợp cảnh báo kho dùng chung cho toàn bộ 6 trang (đảm bảo badge Sidebar khớp 100%)
+function getInventoryAlertSummary(db) {
+    const enriched = (db.products || []).map(p => ({ p, st: getProductStatus(p) }));
+    const lowItems = enriched.filter(x => x.st.isLowStock);
+    const expiryItems = enriched.filter(x => x.st.isNearExpiry || x.st.isExpired);
+    const foodUrgentItems = enriched.filter(x => x.st.isFoodUrgent);
+    const slowItems = enriched.filter(x => x.st.isSlowMoving);
+    const alertItems = enriched.filter(x => x.st.isLowStock || x.st.needsPromo);
+
+    return {
+        totalAlerts: alertItems.length,
+        lowCount: lowItems.length,
+        expiryCount: expiryItems.length,
+        foodUrgentCount: foodUrgentItems.length,
+        slowCount: slowItems.length,
+        foodUrgentItems,
+        alertItems
+    };
+}
+
 function getEffectiveSellPrice(product) {
     const base = Number(product.sellPrice || 0);
     const disc = Math.min(100, Math.max(0, Number(product.discountPercent || 0)));
@@ -97,20 +142,17 @@ function buildDefaultData() {
     return {
         openingCashFund: 0,
 
-        // 1. Danh mục Nhà cung cấp
         suppliers: [
             { id: "NCC01", name: "NPP Nước giải khát Miền Trung", phone: "0236 388 1122", category: "Nước uống", address: "KCN Hòa Khánh, Đà Nẵng" },
             { id: "NCC02", name: "Cơ sở Thực phẩm Nhanh Hòa Phát", phone: "0236 399 4455", category: "Đồ ăn", address: "Quận Hải Châu, Đà Nẵng" },
             { id: "NCC03", name: "Xưởng Phụ kiện Thể thao SportVN", phone: "0905 778 899", category: "Phụ kiện", address: "Quận Thanh Khê, Đà Nẵng" }
         ],
 
-        // 2. Danh mục Khuyến mãi / Voucher hóa đơn
         promotions: [
             { id: "KM01", code: "KHUNGVANG10", name: "Giảm 10% đơn POS khung giờ vàng", type: "percent", value: 10, minOrder: 100000, active: true },
             { id: "KM02", code: "XAKHO20K", name: "Giảm 20.000đ đơn từ 150.000đ", type: "fixed", value: 20000, minOrder: 150000, active: true }
         ],
 
-        // 3. Danh mục Sân bóng
         pitches: [
             { id: "S5A", name: "Sân 5A", type: "Sân 5 người", normalPrice: 250000, peakPrice: 350000, status: "active", note: "Cỏ nhân tạo mới thay" },
             { id: "S5B", name: "Sân 5B", type: "Sân 5 người", normalPrice: 250000, peakPrice: 350000, status: "active", note: "Gần căng-tin, đèn LED mới" },
@@ -118,7 +160,6 @@ function buildDefaultData() {
             { id: "S7A", name: "Sân 7A (Sân chính)", type: "Sân 7 người", normalPrice: 500000, peakPrice: 650000, status: "active", note: "Có khán đài mini tổ chức giải" }
         ],
 
-        // 4. Khung giờ 1 tiếng (04:00 - 23:00)
         timeSlots: [
             { id: "H04", start: "04:00", end: "05:00", label: "04:00 - 05:00", isPeak: false, period: "morning" },
             { id: "H05", start: "05:00", end: "06:00", label: "05:00 - 06:00", isPeak: false, period: "morning" },
@@ -141,7 +182,6 @@ function buildDefaultData() {
             { id: "H22", start: "22:00", end: "23:00", label: "22:00 - 23:00", isPeak: false, period: "evening" }
         ],
 
-        // 5. Lịch đặt sân
         bookings: [
             { id: "HD108", date: today, pitchId: "S5A", startTime: "17:00", endTime: "18:00", customer: "Anh Tuấn (FC IT)", phone: "0905123456", status: "playing", paid: true, dayIndex: todayIdx, deposit: 100000, note: "Khách quen" },
             { id: "HD107", date: today, pitchId: "S5C", startTime: "17:00", endTime: "18:00", customer: "HuyFC", phone: "0987654321", status: "booked", paid: false, dayIndex: todayIdx, deposit: 100000, note: "10 áo Bib" },
@@ -149,20 +189,18 @@ function buildDefaultData() {
             { id: "HD105", date: today, pitchId: "S7A", startTime: "19:00", endTime: "20:00", customer: "FC Bình Minh", phone: "0987654321", status: "tournament", paid: true, dayIndex: todayIdx, deposit: 650000, note: "Giải Tứ Hùng" }
         ],
 
-        // 6. Hàng hóa (có NCC, Hạn sử dụng, Ngày bán gần nhất, % Khuyến mãi)
         products: [
             { id: "SP01", name: "Nước bù khoáng Revive Chanh Muối", category: "Nước uống", unit: "Chai", supplierId: "NCC01", costPrice: 7500, sellPrice: 12000, stock: 6, minStock: 24, expiryDate: addDaysISO(65), lastSoldDate: today, discountPercent: 0, promoLabel: "", icon: "bi-cup-straw" },
-            { id: "SP02", name: "Nước tăng lực RedBull (Bò húc)", category: "Nước uống", unit: "Lon", supplierId: "NCC01", costPrice: 10000, sellPrice: 15000, stock: 8, minStock: 24, expiryDate: addDaysISO(90), lastSoldDate: today, discountPercent: 0, promoLabel: "", icon: "bi-lightning-charge-fill" },
+            { id: "SP02", name: "Nước tăng lực RedBull (Bò húc)", category: "Nước uống", unit: "Lon", supplierId: "NCC01", costPrice: 10000, sellPrice: 15000, stock: 8, minStock: 24, expiryDate: addDaysISO(12), lastSoldDate: today, discountPercent: 0, promoLabel: "", icon: "bi-lightning-charge-fill" },
             { id: "SP03", name: "Nước suối Aquafina 500ml", category: "Nước uống", unit: "Chai", supplierId: "NCC01", costPrice: 4000, sellPrice: 8000, stock: 65, minStock: 30, expiryDate: addDaysISO(120), lastSoldDate: today, discountPercent: 0, promoLabel: "", icon: "bi-droplet-fill" },
             { id: "SP04", name: "Trà đá ca lớn (Phục vụ tại sân)", category: "Nước uống", unit: "Ca", supplierId: "NCC01", costPrice: 3000, sellPrice: 15000, stock: 50, minStock: 10, expiryDate: "", lastSoldDate: today, discountPercent: 0, promoLabel: "", icon: "bi-cup-hot" },
-            { id: "SP05", name: "Mì tôm trứng xúc xích", category: "Đồ ăn", unit: "Tô", supplierId: "NCC02", costPrice: 12000, sellPrice: 25000, stock: 35, minStock: 10, expiryDate: addDaysISO(10), lastSoldDate: addDaysISO(-2), discountPercent: 25, promoLabel: "Xả hàng cận date", icon: "bi-egg-fried" },
-            { id: "SP06", name: "Bánh mì ngọt / Xúc xích nướng", category: "Đồ ăn", unit: "Cái", supplierId: "NCC02", costPrice: 8000, sellPrice: 15000, stock: 18, minStock: 10, expiryDate: addDaysISO(4), lastSoldDate: addDaysISO(-1), discountPercent: 30, promoLabel: "Xả hàng cận date", icon: "bi-bag-heart" },
+            { id: "SP05", name: "Mì tôm trứng xúc xích", category: "Đồ ăn", unit: "Tô", supplierId: "NCC02", costPrice: 12000, sellPrice: 25000, stock: 35, minStock: 10, expiryDate: addDaysISO(10), lastSoldDate: addDaysISO(-2), discountPercent: 0, promoLabel: "", icon: "bi-egg-fried" },
+            { id: "SP06", name: "Bánh mì ngọt / Xúc xích nướng", category: "Đồ ăn", unit: "Cái", supplierId: "NCC02", costPrice: 8000, sellPrice: 15000, stock: 18, minStock: 10, expiryDate: addDaysISO(1), lastSoldDate: addDaysISO(-1), discountPercent: 30, promoLabel: "Xả đồ ăn cận HSD", icon: "bi-bag-heart" },
             { id: "SP07", name: "Băng keo thể thao cuốn cổ chân", category: "Phụ kiện", unit: "Cuộn", supplierId: "NCC03", costPrice: 8000, sellPrice: 15000, stock: 4, minStock: 10, expiryDate: "", lastSoldDate: addDaysISO(-3), discountPercent: 0, promoLabel: "", icon: "bi-bandaid" },
             { id: "SP08", name: "Tất dệt kim chống trượt (Mẫu 2025)", category: "Phụ kiện", unit: "Đôi", supplierId: "NCC03", costPrice: 18000, sellPrice: 35000, stock: 22, minStock: 10, expiryDate: "", lastSoldDate: addDaysISO(-45), discountPercent: 20, promoLabel: "Xả mẫu cũ tồn kho", icon: "bi-universal-access" },
             { id: "SP09", name: "Thuê Áo Bib chia đội (10 áo/bộ)", category: "Phụ kiện", unit: "Bộ", supplierId: "NCC03", costPrice: 0, sellPrice: 30000, stock: 12, minStock: 3, expiryDate: "", lastSoldDate: today, discountPercent: 0, promoLabel: "", icon: "bi-person-badge" }
         ],
 
-        // 7. Đơn hàng POS (lưu kèm thông tin khuyến mãi)
         posOrders: [
             {
                 id: "POS01",
@@ -175,8 +213,8 @@ function buildDefaultData() {
                 voucherCode: "",
                 voucherDiscount: 0,
                 items: [
-                    { productId: "SP01", qty: 6 },
-                    { productId: "SP03", qty: 4 }
+                    { productId: "SP01", qty: 6, originalPrice: 12000, unitPrice: 12000 },
+                    { productId: "SP03", qty: 4, originalPrice: 8000, unitPrice: 8000 }
                 ]
             },
             {
@@ -190,19 +228,17 @@ function buildDefaultData() {
                 voucherCode: "KHUNGVANG10",
                 voucherDiscount: 18000,
                 items: [
-                    { productId: "SP02", qty: 8 },
-                    { productId: "SP09", qty: 2 }
+                    { productId: "SP02", qty: 8, originalPrice: 15000, unitPrice: 15000 },
+                    { productId: "SP09", qty: 2, originalPrice: 30000, unitPrice: 30000 }
                 ]
             }
         ],
 
-        // 8. Nhật ký Nhập / Xuất kho
         inventoryLogs: [
             { id: "NK01", date: today, time: `${today} 08:30`, productName: "Nước suối Aquafina 500ml", supplierName: "NPP Nước giải khát Miền Trung", expiryDate: addDaysISO(120), type: "IMPORT", qty: 48, costPrice: 4000, note: "Nhập 2 thùng từ nhà cung cấp" },
             { id: "XK01", date: today, time: `${today} 17:45`, productName: "Nước bù khoáng Revive Chanh Muối", type: "EXPORT", qty: 6, note: "Bán hàng POS: Anh Tuấn (Sân 5A)" }
         ],
 
-        // 9. Giải đấu
         tournaments: {
             name: "Giải Bóng Đá Phong Trào Tứ Hùng Mở Rộng - 2026",
             prize: "5.000.000đ + Cúp Vô Địch",
@@ -231,16 +267,12 @@ function getPitchData() {
     let migrated = false;
 
     if (parsed.openingCashFund === undefined) { parsed.openingCashFund = 0; migrated = true; }
-    if (!parsed.suppliers) { parsed.suppliers = fresh.suppliers; migrated = true; }
+    if (!parsed.pitches || parsed.pitches.length === 0) { parsed.pitches = fresh.pitches; migrated = true; }
+    if (!parsed.suppliers || parsed.suppliers.length === 0) { parsed.suppliers = fresh.suppliers; migrated = true; }
     if (!parsed.promotions) { parsed.promotions = fresh.promotions; migrated = true; }
     if (!parsed.posOrders) { parsed.posOrders = fresh.posOrders; migrated = true; }
-    if (!parsed.pitches || parsed.pitches.length === 0) {
-        parsed.pitches = fresh.pitches;
-        migrated = true;
-    }
     if (!parsed.timeSlots || !parsed.timeSlots[0].start) { parsed.timeSlots = fresh.timeSlots; migrated = true; }
 
-    // Bổ sung trường HSD, NCC, ngày bán cuối, % KM nếu đang dùng dữ liệu cũ
     (parsed.products || []).forEach(p => {
         const ref = fresh.products.find(x => x.id === p.id);
         if (p.supplierId === undefined) { p.supplierId = ref ? ref.supplierId : "NCC01"; migrated = true; }
@@ -283,13 +315,13 @@ function getBookingTimeLabel(db, booking) {
     return slot ? slot.label : "";
 }
 
-// Tính doanh thu thực thu, giá vốn (COGS) và tổng tiền khuyến mãi của đơn POS
+// Tính doanh thu thực thu, giá vốn (COGS), khuyến mãi và phân bổ Voucher chuẩn 100% cho biểu đồ
 function getPosOrderTotal(db, order) {
     let grossTotal = 0;
     let netItemsTotal = 0;
     let cost = 0;
-    let foodDrink = 0;
-    let accessory = 0;
+    let rawFoodDrink = 0;
+    let rawAccessory = 0;
 
     (order.items || []).forEach(it => {
         const prod = db.products.find(p => p.id === it.productId);
@@ -307,14 +339,24 @@ function getPosOrderTotal(db, order) {
         netItemsTotal += subNet;
         cost += costPrice * qty;
 
-        if (prod && prod.category === "Phụ kiện") accessory += subNet;
-        else foodDrink += subNet;
+        if (prod && prod.category === "Phụ kiện") rawAccessory += subNet;
+        else rawFoodDrink += subNet;
     });
 
     const productDiscount = Math.max(0, grossTotal - netItemsTotal);
-    const voucherDiscount = Number(order.voucherDiscount || 0);
+    const voucherDiscount = Math.min(netItemsTotal, Number(order.voucherDiscount || 0));
     const total = Math.max(0, netItemsTotal - voucherDiscount);
     const totalDiscount = productDiscount + voucherDiscount;
+
+    // Phân bổ voucherDiscount theo đúng tỷ lệ vào foodDrink và accessory để tổng luôn khớp 100%
+    let foodDrink = rawFoodDrink;
+    let accessory = rawAccessory;
+    if (voucherDiscount > 0 && netItemsTotal > 0) {
+        const fdVoucher = Math.round(voucherDiscount * (rawFoodDrink / netItemsTotal));
+        const accVoucher = voucherDiscount - fdVoucher;
+        foodDrink = Math.max(0, rawFoodDrink - fdVoucher);
+        accessory = Math.max(0, rawAccessory - accVoucher);
+    }
 
     return { grossTotal, productDiscount, voucherDiscount, totalDiscount, total, cost, foodDrink, accessory };
 }

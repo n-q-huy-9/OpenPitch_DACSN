@@ -7,10 +7,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="assets/css/style.css">
-    <style>
-        .badge-slow { background-color: #EDE9FE; color: #6D28D9; }
-        .badge-near-exp { background-color: #FFEDD5; color: #C2410C; }
-    </style>
 </head>
 <body>
 
@@ -40,9 +36,18 @@
             <li class="nav-item"><a href="tournaments.html" class="nav-link"><i class="bi bi-trophy"></i> Quản lý giải đấu</a></li>
         </ul>
 
-        <a href="login.html" class="btn btn-outline-danger btn-sm mt-auto">
+        <div class="p-3 rounded-3 mt-auto mb-2" style="background: rgba(255,255,255,0.06);">
+            <div class="d-flex align-items-center gap-2 text-white">
+                <i class="bi bi-person-circle fs-4 text-success"></i>
+                <div class="small text-truncate">
+                    <div class="fw-semibold text-truncate" id="sidebarUserName">Chủ sân Quốc Huy</div>
+                    <span class="text-secondary" style="font-size: 0.75rem;" id="sidebarUserRole">Chủ sân</span>
+                </div>
+            </div>
+        </div>
+        <button type="button" onclick="logoutSystem()" class="btn btn-outline-danger btn-sm w-100">
             <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
-        </a>
+        </button>
     </aside>
 
     <!-- MAIN CONTENT -->
@@ -50,9 +55,12 @@
         <header class="topbar d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 sticky-top">
             <div>
                 <h5 class="mb-0 fw-bold">Quản Lý Kho Hàng, Nhà Cung Cấp &amp; Cảnh Báo FEFO</h5>
-                <small class="text-muted">Nhập hàng từ NCC, theo dõi hạn sử dụng (HSD), hàng tồn lâu sắp lỗi thời và bật khuyến mãi xả kho</small>
+                <small class="text-muted">Nhập hàng từ NCC, theo dõi HSD (đồ ăn báo trước 1 ngày), tồn lâu lỗi thời &amp; xả kho</small>
             </div>
-            <div class="d-flex gap-2">
+            <div class="d-flex flex-wrap gap-2">
+                <a href="pos-products.html?openPromo=food" class="btn btn-outline-warning text-dark btn-sm px-3 fw-semibold">
+                    <i class="bi bi-tags-fill me-1"></i> Chọn món khuyến mãi
+                </a>
                 <button class="btn btn-outline-primary btn-sm px-3" data-bs-toggle="modal" data-bs-target="#supplierModal">
                     <i class="bi bi-truck me-1"></i> + Thêm Nhà cung cấp
                 </button>
@@ -63,6 +71,9 @@
         </header>
 
         <main class="p-4">
+            <!-- BANNER THÔNG BÁO MÓN ĂN HẾT HẠN TRƯỚC 1 NGÀY -->
+            <div id="invFoodExpiryBanner" class="food-alert-banner p-3 mb-3 d-none"></div>
+
             <!-- HÀNG 1: 4 THẺ THỐNG KÊ KHO -->
             <div class="row g-3 mb-4">
                 <div class="col-md-3">
@@ -107,7 +118,7 @@
                             <div>
                                 <p class="text-muted small mb-1">Cận HSD / Tồn lâu lỗi thời</p>
                                 <h4 class="fw-bold mb-0 text-warning" id="promoNeededCardCount">0 sản phẩm</h4>
-                                <small class="text-muted">Cần bật KM đẩy hàng nhanh</small>
+                                <small class="text-muted">Đồ ăn ≤1n • Nước ≤15n • Tồn ≥30n</small>
                             </div>
                             <div class="icon-box bg-warning bg-opacity-10 text-warning"><i class="bi bi-hourglass-split"></i></div>
                         </div>
@@ -120,12 +131,15 @@
                 <div class="col-lg-8">
                     <div class="card card-custom p-4">
                         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-                            <h6 class="fw-bold mb-0">Danh sách Tồn kho &amp; Cảnh báo thông minh</h6>
-                            <div class="btn-group btn-group-sm" role="group">
-                                <button class="btn btn-outline-secondary active" onclick="setFilter('all', this)">Tất cả</button>
-                                <button class="btn btn-outline-danger" onclick="setFilter('low', this)">Sắp hết</button>
-                                <button class="btn btn-outline-warning" onclick="setFilter('expiry', this)">Sắp hết hạn (≤15n)</button>
-                                <button class="btn btn-outline-primary" onclick="setFilter('slow', this)">Tồn lâu / Lỗi thời</button>
+                            <h6 class="fw-bold mb-0">Danh sách Tồn kho &amp; Cảnh báo FEFO</h6>
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <input type="text" id="invSearchInput" class="form-control form-control-sm" style="max-width: 180px;" placeholder="Tìm tên hàng..." oninput="renderInventory()">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button class="btn btn-outline-secondary active" onclick="setFilter('all', this)">Tất cả</button>
+                                    <button class="btn btn-outline-danger" onclick="setFilter('low', this)">Sắp hết</button>
+                                    <button class="btn btn-outline-warning text-dark" onclick="setFilter('expiry', this)">Sắp hết hạn</button>
+                                    <button class="btn btn-outline-primary" onclick="setFilter('slow', this)">Tồn lâu</button>
+                                </div>
                             </div>
                         </div>
 
@@ -199,7 +213,6 @@
                         </div>
                     </div>
 
-                    <!-- PHẦN CHỈ HIỆN KHI NHẬP HÀNG -->
                     <div id="importOnlySection">
                         <div class="row g-2 mb-3">
                             <div class="col-7">
@@ -277,6 +290,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/data.js"></script>
+    <script src="assets/js/app.js"></script>
     <script>
         const stockModal = new bootstrap.Modal(document.getElementById('stockModal'));
         let currentFilter = 'all';
@@ -295,12 +309,12 @@
             const supSelect = document.getElementById('stockSupplierSelect');
             const logsBox = document.getElementById('inventoryLogsContainer');
             const supBox = document.getElementById('suppliersListContainer');
+            const keyword = (document.getElementById('invSearchInput').value || '').trim().toLowerCase();
 
             tbody.innerHTML = '';
             prodSelect.innerHTML = '';
             supSelect.innerHTML = (db.suppliers || []).map(s => `<option value="${s.id}">${s.name}</option>`).join('');
 
-            // Render danh sách Nhà cung cấp
             supBox.innerHTML = (db.suppliers || []).map(s => `
                 <div class="border-bottom py-2 small">
                     <div class="d-flex justify-content-between align-items-center">
@@ -313,28 +327,45 @@
                 </div>
             `).join('');
 
-            let totalVal = 0;
-            let lowCount = 0;
-            let promoNeededCount = 0;
-            let totalAlertItems = 0;
+            const summary = getInventoryAlertSummary(db);
+            syncSidebarAlertBadge();
 
+            const foodBanner = document.getElementById('invFoodExpiryBanner');
+            if (summary.foodUrgentItems.length > 0) {
+                const listText = summary.foodUrgentItems
+                    .map(({ p, st }) => `<strong>${p.name}</strong> (HSD: ${formatDateVN(p.expiryDate)} — ${st.expiryStatusText})`)
+                    .join(' • ');
+                foodBanner.innerHTML = `
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 small">
+                        <div class="text-danger">
+                            <i class="bi bi-exclamation-octagon-fill me-1"></i>
+                            <strong>Cảnh báo món ăn hết hạn (báo trước 1 ngày):</strong> ${listText}
+                        </div>
+                        <a href="pos-products.html?openPromo=food" class="btn btn-danger btn-sm px-3">
+                            <i class="bi bi-tags-fill me-1"></i> Đưa vào danh sách KM ngay
+                        </a>
+                    </div>
+                `;
+                foodBanner.classList.remove('d-none');
+            } else {
+                foodBanner.classList.add('d-none');
+            }
+
+            let totalVal = 0;
             const enriched = db.products.map(p => ({ p, st: getProductStatus(p) }));
-            enriched.forEach(({ p, st }) => {
+            enriched.forEach(({ p }) => {
                 totalVal += Number(p.stock) * Number(p.costPrice);
-                if (st.isLowStock) lowCount++;
-                if (st.needsPromo) promoNeededCount++;
-                if (st.isLowStock || st.needsPromo) totalAlertItems++;
                 prodSelect.innerHTML += `<option value="${p.id}">${p.name} (Tồn: ${p.stock} ${p.unit})</option>`;
             });
 
-            // Lọc & sắp xếp ưu tiên cảnh báo lên đầu
-            const visible = enriched.filter(({ st }) => {
+            const visible = enriched.filter(({ p, st }) => {
+                if (keyword && !p.name.toLowerCase().includes(keyword)) return false;
                 if (currentFilter === 'low') return st.isLowStock;
                 if (currentFilter === 'expiry') return st.isNearExpiry || st.isExpired;
                 if (currentFilter === 'slow') return st.isSlowMoving;
                 return true;
             }).sort((a, b) => {
-                const score = s => (s.isExpired ? 4 : 0) + (s.isNearExpiry ? 3 : 0) + (s.isLowStock ? 2 : 0) + (s.isSlowMoving ? 1 : 0);
+                const score = s => (s.isFoodUrgent ? 5 : 0) + (s.isExpired ? 4 : 0) + (s.isNearExpiry ? 3 : 0) + (s.isLowStock ? 2 : 0) + (s.isSlowMoving ? 1 : 0);
                 return score(b.st) - score(a.st);
             });
 
@@ -346,9 +377,10 @@
                 const effPrice = getEffectiveSellPrice(p);
                 const hasDisc = Number(p.discountPercent || 0) > 0;
 
-                // Xây nhãn cảnh báo 3 loại
                 let badgesHtml = '';
-                if (st.isExpired) {
+                if (st.isFoodUrgent) {
+                    badgesHtml += `<span class="badge bg-danger d-inline-block mb-1"><i class="bi bi-alarm-fill me-1"></i>${st.expiryStatusText}</span> `;
+                } else if (st.isExpired) {
                     badgesHtml += `<span class="badge bg-dark d-inline-block mb-1"><i class="bi bi-x-octagon me-1"></i>Đã hết hạn!</span> `;
                 } else if (st.isNearExpiry) {
                     badgesHtml += `<span class="badge badge-near-exp d-inline-block mb-1"><i class="bi bi-hourglass-split me-1"></i>Cận HSD (còn ${st.daysToExpiry} ngày)</span> `;
@@ -357,7 +389,7 @@
                     badgesHtml += `<span class="badge bg-danger d-inline-block mb-1"><i class="bi bi-exclamation-triangle me-1"></i>Sắp hết hàng</span> `;
                 }
                 if (st.isSlowMoving) {
-                    badgesHtml += `<span class="badge badge-slow d-inline-block mb-1"><i class="bi bi-clock-history me-1"></i>Tồn lâu (${st.daysSinceSold} ngày chưa bán)</span> `;
+                    badgesHtml += `<span class="badge badge-slow d-inline-block mb-1"><i class="bi bi-clock-history me-1"></i>Tồn lâu (${st.daysSinceSold} ngày)</span> `;
                 }
                 if (!badgesHtml) {
                     badgesHtml = `<span class="badge bg-success-subtle text-success">Tồn kho an toàn</span>`;
@@ -366,18 +398,17 @@
                     badgesHtml += `<div class="mt-1"><span class="badge bg-warning text-dark"><i class="bi bi-tag-fill me-1"></i>Đang KM -${p.discountPercent}% (${p.promoLabel || 'Giảm giá'})</span></div>`;
                 }
 
-                // Nút hành động KM 1 chạm cho hàng cận date / tồn lâu
                 let promoBtnHtml = '';
                 if (hasDisc) {
                     promoBtnHtml = `<button class="btn btn-sm btn-outline-secondary" onclick="toggleQuickPromo('${p.id}', 0, '')">Tắt KM</button>`;
-                } else if (st.isNearExpiry || st.isExpired) {
-                    promoBtnHtml = `<button class="btn btn-sm btn-warning text-dark fw-semibold" onclick="toggleQuickPromo('${p.id}', 30, 'Xả hàng cận date')">Bật KM -30%</button>`;
+                } else if (st.isFoodUrgent || st.isNearExpiry || st.isExpired) {
+                    promoBtnHtml = `<button class="btn btn-sm btn-warning text-dark fw-semibold" onclick="toggleQuickPromo('${p.id}', 30, 'Xả hàng cận HSD')">Bật KM -30%</button>`;
                 } else if (st.isSlowMoving) {
                     promoBtnHtml = `<button class="btn btn-sm btn-outline-primary" onclick="toggleQuickPromo('${p.id}', 20, 'Xả mẫu cũ tồn kho')">Bật KM -20%</button>`;
                 }
 
                 tbody.innerHTML += `
-                    <tr class="${st.isExpired || st.isLowStock ? 'table-danger bg-opacity-10' : (st.isNearExpiry ? 'table-warning bg-opacity-10' : '')}">
+                    <tr class="${st.isFoodUrgent || st.isExpired || st.isLowStock ? 'table-danger bg-opacity-10' : (st.isNearExpiry ? 'table-warning bg-opacity-10' : '')}">
                         <td>
                             <div class="fw-bold">${p.name}</div>
                             <div class="text-muted" style="font-size: 0.74rem;">
@@ -395,7 +426,7 @@
                             <span class="fs-6 fw-bold ${st.isLowStock ? 'text-danger' : 'text-dark'}">${p.stock}</span> ${p.unit}
                             <div class="text-muted" style="font-size: 0.72rem;">Tối thiểu: ${p.minStock}</div>
                             ${p.expiryDate
-                                ? `<div class="${st.isNearExpiry || st.isExpired ? 'text-danger fw-semibold' : 'text-muted'}" style="font-size: 0.72rem;">HSD: ${p.expiryDate}</div>`
+                                ? `<div class="${st.isFoodUrgent || st.isNearExpiry || st.isExpired ? 'text-danger fw-bold' : 'text-muted'}" style="font-size: 0.74rem;">HSD: ${formatDateVN(p.expiryDate)}</div>`
                                 : `<div class="text-muted" style="font-size: 0.72rem;">Không áp dụng HSD</div>`
                             }
                         </td>
@@ -415,11 +446,9 @@
             document.getElementById('totalProductsCount').innerText = db.products.length + ' mặt hàng';
             document.getElementById('totalSuppliersCount').innerText = (db.suppliers || []).length + ' nhà cung cấp';
             document.getElementById('totalInventoryValue').innerText = formatVND(totalVal);
-            document.getElementById('lowStockCardCount').innerText = lowCount + ' sản phẩm';
-            document.getElementById('promoNeededCardCount').innerText = promoNeededCount + ' sản phẩm';
-            document.getElementById('sidebarAlertCount').innerText = totalAlertItems;
+            document.getElementById('lowStockCardCount').innerText = summary.lowCount + ' sản phẩm';
+            document.getElementById('promoNeededCardCount').innerText = (summary.expiryCount + summary.slowCount) + ' sản phẩm';
 
-            // Render nhật ký nhập xuất
             logsBox.innerHTML = '';
             db.inventoryLogs.forEach(log => {
                 const isImp = log.type === 'IMPORT';
@@ -436,7 +465,7 @@
                             <div class="fw-semibold">${log.productName}</div>
                             ${isImp && impCost > 0 ? `<span class="fw-bold text-danger">-${formatVND(impCost)}</span>` : ''}
                         </div>
-                        ${log.supplierName ? `<div class="text-primary" style="font-size: 0.72rem;"><i class="bi bi-truck me-1"></i>${log.supplierName}${log.expiryDate ? ' • HSD: ' + log.expiryDate : ''}</div>` : ''}
+                        ${log.supplierName ? `<div class="text-primary" style="font-size: 0.72rem;"><i class="bi bi-truck me-1"></i>${log.supplierName}${log.expiryDate ? ' • HSD: ' + formatDateVN(log.expiryDate) : ''}</div>` : ''}
                         <div class="text-muted" style="font-size: 0.74rem;">${log.note}</div>
                     </div>
                 `;
@@ -451,9 +480,12 @@
             prod.promoLabel = label;
             savePitchData(db);
             renderInventory();
-            if (percent > 0) {
-                alert(`Đã bật khuyến mãi -${percent}% (${label}) cho "${prod.name}". Giá giảm đã tự động đồng bộ sang màn hình bán hàng POS!`);
-            }
+            showToast(
+                percent > 0
+                    ? `Đã bật khuyến mãi -${percent}% cho "${prod.name}" và đồng bộ sang POS!`
+                    : `Đã tắt khuyến mãi cho "${prod.name}".`,
+                percent > 0 ? 'success' : 'info'
+            );
         }
 
         function syncModalProductInfo() {
@@ -503,7 +535,7 @@
             if (!prod) return;
 
             if (type === 'EXPORT' && prod.stock < qty) {
-                alert('Số lượng xuất vượt quá tồn kho hiện tại!');
+                showToast('Số lượng xuất vượt quá tồn kho hiện tại!', 'danger');
                 return;
             }
 
@@ -543,14 +575,21 @@
             stockModal.hide();
             document.getElementById('stockNote').value = '';
             renderInventory();
+            showToast(
+                type === 'IMPORT'
+                    ? `Đã nhập +${qty} ${prod.unit} ${prod.name} (chi ${formatVND(qty * unitCost)})!`
+                    : `Đã xuất -${qty} ${prod.unit} ${prod.name} khỏi kho!`,
+                'success'
+            );
         }
 
         function addSupplier(e) {
             e.preventDefault();
             const db = getPitchData();
+            const name = document.getElementById('supName').value.trim();
             db.suppliers.push({
                 id: 'NCC' + Date.now().toString().slice(-3),
-                name: document.getElementById('supName').value.trim(),
+                name,
                 phone: document.getElementById('supPhone').value.trim(),
                 category: document.getElementById('supCat').value,
                 address: document.getElementById('supAddress').value.trim()
@@ -559,6 +598,7 @@
             bootstrap.Modal.getInstance(document.getElementById('supplierModal')).hide();
             e.target.reset();
             renderInventory();
+            showToast(`Đã thêm nhà cung cấp "${name}"!`, 'success');
         }
 
         renderInventory();

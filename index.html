@@ -36,18 +36,18 @@
             <li class="nav-item"><a href="tournaments.html" class="nav-link"><i class="bi bi-trophy"></i> Quản lý giải đấu</a></li>
         </ul>
 
-        <div class="p-3 rounded-3 mt-auto mb-2" style="background: rgba(255,255,255,0.05);">
+        <div class="p-3 rounded-3 mt-auto mb-2" style="background: rgba(255,255,255,0.06);">
             <div class="d-flex align-items-center gap-2 text-white">
                 <i class="bi bi-person-circle fs-4 text-success"></i>
-                <div class="small">
-                    <div class="fw-semibold" id="sidebarUserName">Chủ sân Quốc Huy</div>
-                    <span class="text-secondary" style="font-size: 0.75rem;" id="sidebarUserRole">Đang hoạt động</span>
+                <div class="small text-truncate">
+                    <div class="fw-semibold text-truncate" id="sidebarUserName">Chủ sân Quốc Huy</div>
+                    <span class="text-secondary" style="font-size: 0.75rem;" id="sidebarUserRole">Chủ sân</span>
                 </div>
             </div>
         </div>
-        <a href="login.html" class="btn btn-outline-danger btn-sm">
+        <button type="button" onclick="logoutSystem()" class="btn btn-outline-danger btn-sm w-100">
             <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
-        </a>
+        </button>
     </aside>
 
     <!-- MAIN CONTENT -->
@@ -66,7 +66,10 @@
         </header>
 
         <main class="p-4">
-            <!-- HÀNG 1: 4 THẺ KPI DOANH THU, LỢI NHUẬN & CẢNH BÁO KHO -->
+            <!-- BANNER THÔNG BÁO MÓN ĂN HẾT HẠN TRƯỚC 1 NGÀY -->
+            <div id="dashboardFoodBanner" class="food-alert-banner p-3 mb-3 d-none"></div>
+
+            <!-- HÀNG 1: 4 THẺ KPI -->
             <div class="row g-3 mb-3">
                 <div class="col-md-3">
                     <div class="card card-custom p-3 h-100">
@@ -216,16 +219,10 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="assets/js/data.js"></script>
+    <script src="assets/js/app.js"></script>
     <script>
         let barChartInstance = null;
         let doughnutChartInstance = null;
-
-        // Đồng bộ tên người đang đăng nhập từ login.html
-        const session = JSON.parse(localStorage.getItem("OPENPITCH_SESSION") || "null");
-        if (session) {
-            document.getElementById("sidebarUserName").innerText = session.fullName;
-            document.getElementById("sidebarUserRole").innerText = session.role || "Đang hoạt động";
-        }
 
         const monthPicker = document.getElementById('dashboardMonthPicker');
         monthPicker.value = getCurrentMonthISO();
@@ -237,6 +234,7 @@
                 db.openingCashFund = Number(val);
                 savePitchData(db);
                 renderDashboard();
+                showToast("Đã cập nhật số dư quỹ đầu kỳ!", "success");
             }
         }
 
@@ -251,7 +249,6 @@
             const monthPosOrders = db.posOrders.filter(o => (o.date || getTodayISO()).startsWith(selectedMonth));
             const monthImports = (db.inventoryLogs || []).filter(l => l.type === 'IMPORT' && (l.date || getTodayISO()).startsWith(selectedMonth));
 
-            // 1. Doanh thu thuê sân
             let pitchPaidRev = 0;
             let pitchUnpaidRev = 0;
             let paidBookingCount = 0;
@@ -270,7 +267,6 @@
                 }
             });
 
-            // 2. Doanh thu, giá vốn & khuyến mãi POS
             let salesTotalRev = 0;
             let salesCOGS = 0;
             let totalPromoDiscount = 0;
@@ -288,16 +284,14 @@
                 salesByDay[dIdx] += calc.total;
             });
 
-            // 3. Doanh thu, Lợi nhuận gộp & %
             const grandTotal = pitchPaidRev + salesTotalRev;
             const grossProfit = grandTotal - salesCOGS;
 
-            const pitchPct = grandTotal > 0 ? ((pitchPaidRev / grandTotal) * 100).toFixed(1) : 0;
-            const salesPct = grandTotal > 0 ? ((salesTotalRev / grandTotal) * 100).toFixed(1) : 0;
-            const foodDrinkPct = grandTotal > 0 ? ((foodDrinkRev / grandTotal) * 100).toFixed(1) : 0;
-            const accPct = grandTotal > 0 ? ((accessoryRev / grandTotal) * 100).toFixed(1) : 0;
+            const pitchPct = grandTotal > 0 ? ((pitchPaidRev / grandTotal) * 100).toFixed(1) : '0.0';
+            const salesPct = grandTotal > 0 ? ((salesTotalRev / grandTotal) * 100).toFixed(1) : '0.0';
+            const foodDrinkPct = grandTotal > 0 ? ((foodDrinkRev / grandTotal) * 100).toFixed(1) : '0.0';
+            const accPct = grandTotal > 0 ? (Math.max(0, 100 - Number(pitchPct) - Number(foodDrinkPct))).toFixed(1) : '0.0';
 
-            // 4. Sổ quỹ & Dòng tiền
             let monthImportCost = 0;
             monthImports.forEach(log => monthImportCost += getImportLogCost(db, log));
             const monthNetCashFlow = grandTotal - monthImportCost;
@@ -323,7 +317,6 @@
             cfAccEl.innerText = formatVND(accumulatedFund);
             cfAccEl.className = `fs-5 fw-bold ${accumulatedFund >= 0 ? 'text-primary' : 'text-danger'}`;
 
-            // 5. Cập nhật KPI
             document.getElementById('kpiGrandTotal').innerText = formatVND(grandTotal);
             document.getElementById('kpiGrossProfit').innerText = `Lợi nhuận gộp: ${formatVND(grossProfit)}`;
             document.getElementById('kpiPendingNote').innerText = pitchUnpaidRev > 0
@@ -337,38 +330,57 @@
             document.getElementById('kpiSalesSub').innerText = `Chiếm ${salesPct}% tổng thu (${monthPosOrders.length} đơn POS)`;
             document.getElementById('kpiPromoDiscount').innerText = `Đã giảm KM: -${formatVND(totalPromoDiscount)}`;
 
-            // 6. Cảnh báo 3 cấp độ: Sắp hết + Cận HSD + Tồn lâu
-            const alertItems = db.products
-                .map(p => ({ p, st: getProductStatus(p) }))
-                .filter(({ st }) => st.isLowStock || st.needsPromo);
+            const summary = getInventoryAlertSummary(db);
+            document.getElementById('kpiLowStock').innerText = String(summary.totalAlerts).padStart(2, '0') + ' cảnh báo';
+            document.getElementById('kpiLowStockSub').innerText = `Hết: ${summary.lowCount} • Cận HSD: ${summary.expiryCount} • Tồn lâu: ${summary.slowCount}`;
+            syncSidebarAlertBadge();
 
-            const alertCount = alertItems.length;
-            const lowC = alertItems.filter(x => x.st.isLowStock).length;
-            const expC = alertItems.filter(x => x.st.isNearExpiry || x.st.isExpired).length;
-            const slowC = alertItems.filter(x => x.st.isSlowMoving).length;
-
-            document.getElementById('kpiLowStock').innerText = String(alertCount).padStart(2, '0') + ' cảnh báo';
-            document.getElementById('kpiLowStockSub').innerText = `Hết: ${lowC} • Cận HSD: ${expC} • Tồn lâu: ${slowC}`;
-            document.getElementById('sidebarAlertCount').innerText = alertCount;
+            const foodBanner = document.getElementById('dashboardFoodBanner');
+            if (summary.foodUrgentItems.length > 0) {
+                const names = summary.foodUrgentItems
+                    .map(({ p, st }) => `<strong>${p.name}</strong> (HSD: ${formatDateVN(p.expiryDate)} — ${st.expiryStatusText})`)
+                    .join(', ');
+                foodBanner.innerHTML = `
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 small">
+                        <div class="text-danger">
+                            <i class="bi bi-exclamation-octagon-fill me-1"></i>
+                            <strong>Thông báo món ăn sắp hết hạn (trước 1 ngày):</strong> ${names}
+                        </div>
+                        <a href="pos-products.html?openPromo=food" class="btn btn-danger btn-sm px-3">
+                            <i class="bi bi-tags-fill me-1"></i> Chọn món khuyến mãi ngay
+                        </a>
+                    </div>
+                `;
+                foodBanner.classList.remove('d-none');
+            } else {
+                foodBanner.classList.add('d-none');
+            }
 
             const lowStockList = document.getElementById('lowStockList');
-            if (alertCount === 0) {
+            if (summary.totalAlerts === 0) {
                 lowStockList.innerHTML = `<li class="list-group-item text-success text-center py-4 px-0"><i class="bi bi-check-circle-fill me-1"></i> Kho hàng an toàn, không có cảnh báo!</li>`;
             } else {
-                lowStockList.innerHTML = alertItems.map(({ p, st }) => {
+                const sortedAlerts = [...summary.alertItems].sort((a, b) => {
+                    const sc = s => (s.isFoodUrgent ? 5 : 0) + (s.isExpired ? 4 : 0) + (s.isNearExpiry ? 3 : 0) + (s.isLowStock ? 2 : 0) + (s.isSlowMoving ? 1 : 0);
+                    return sc(b.st) - sc(a.st);
+                });
+                lowStockList.innerHTML = sortedAlerts.map(({ p, st }) => {
                     let tag = '';
                     let sub = '';
-                    if (st.isExpired) {
+                    if (st.isFoodUrgent) {
+                        tag = `<span class="badge bg-danger">${st.expiryStatusText}</span>`;
+                        sub = `Đồ ăn • HSD: ${formatDateVN(p.expiryDate)}${p.discountPercent > 0 ? ` • Đang KM -${p.discountPercent}%` : ' • Cần xả hàng ngay'}`;
+                    } else if (st.isExpired) {
                         tag = `<span class="badge bg-dark">Đã hết hạn</span>`;
-                        sub = `HSD: ${p.expiryDate} • Tồn ${p.stock} ${p.unit}`;
+                        sub = `HSD: ${formatDateVN(p.expiryDate)} • Tồn ${p.stock} ${p.unit}`;
                     } else if (st.isNearExpiry) {
                         tag = `<span class="badge bg-warning text-dark">Cận HSD (${st.daysToExpiry}n)</span>`;
-                        sub = p.discountPercent > 0 ? `Đang KM -${p.discountPercent}% đẩy bán` : `Nên bật KM xả hàng`;
+                        sub = `HSD: ${formatDateVN(p.expiryDate)}${p.discountPercent > 0 ? ` • Đang KM -${p.discountPercent}%` : ''}`;
                     } else if (st.isLowStock) {
                         tag = `<span class="badge bg-danger">Còn ${p.stock} ${p.unit}</span>`;
                         sub = `Định mức tối thiểu: ${p.minStock} ${p.unit}`;
                     } else if (st.isSlowMoving) {
-                        tag = `<span class="badge bg-primary">Tồn ${st.daysSinceSold} ngày</span>`;
+                        tag = `<span class="badge badge-slow">Tồn ${st.daysSinceSold} ngày</span>`;
                         sub = p.discountPercent > 0 ? `Đang KM -${p.discountPercent}% xả kho` : `Hàng chậm bán / sắp lỗi thời`;
                     }
                     return `
@@ -383,7 +395,6 @@
                 }).join('');
             }
 
-            // 7. Bảng giao dịch
             const txBody = document.getElementById('recentTxBody');
             txBody.innerHTML = '';
 
@@ -404,7 +415,7 @@
                         <td class="fw-semibold">#${b.id}</td>
                         <td>
                             <div class="fw-semibold">${b.customer}</div>
-                            <small class="text-muted">${pitch ? pitch.name : ''} • ${getBookingTimeLabel(db, b)} (${b.date || ''})</small>
+                            <small class="text-muted">${pitch ? pitch.name : ''} • ${getBookingTimeLabel(db, b)} (${formatDateVN(b.date)})</small>
                         </td>
                         <td>${formatVND(pitchPrice)}</td>
                         <td>${formatVND(goodsPrice)}</td>
@@ -439,7 +450,6 @@
                 `;
             });
 
-            // 8. Vẽ lại 2 biểu đồ
             if (barChartInstance) barChartInstance.destroy();
             barChartInstance = new Chart(document.getElementById('revenueChart'), {
                 type: 'bar',
@@ -482,6 +492,7 @@
                 bk.paid = true;
                 savePitchData(db);
                 renderDashboard();
+                showToast(`Đã xác nhận thu tiền hóa đơn #${bookingId}!`, "success");
             }
         }
 

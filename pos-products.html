@@ -24,6 +24,10 @@
             border-color: #F59E0B;
             background-color: #FFFBEB;
         }
+        .product-card.is-food-urgent {
+            border-color: #EF4444;
+            box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.25);
+        }
         .pos-bill {
             position: sticky;
             top: 90px;
@@ -52,15 +56,24 @@
             <li class="nav-item">
                 <a href="inventory.html" class="nav-link d-flex justify-content-between align-items-center">
                     <span><i class="bi bi-box-seam me-2"></i> Quản lý kho hàng</span>
-                    <span class="badge bg-danger rounded-pill" id="lowStockBadge">0</span>
+                    <span class="badge bg-danger rounded-pill" id="sidebarAlertCount">0</span>
                 </a>
             </li>
             <li class="nav-item"><a href="tournaments.html" class="nav-link"><i class="bi bi-trophy"></i> Quản lý giải đấu</a></li>
         </ul>
 
-        <a href="login.html" class="btn btn-outline-danger btn-sm mt-auto">
+        <div class="p-3 rounded-3 mt-auto mb-2" style="background: rgba(255,255,255,0.06);">
+            <div class="d-flex align-items-center gap-2 text-white">
+                <i class="bi bi-person-circle fs-4 text-success"></i>
+                <div class="small text-truncate">
+                    <div class="fw-semibold text-truncate" id="sidebarUserName">Chủ sân Quốc Huy</div>
+                    <span class="text-secondary" style="font-size: 0.75rem;" id="sidebarUserRole">Chủ sân</span>
+                </div>
+            </div>
+        </div>
+        <button type="button" onclick="logoutSystem()" class="btn btn-outline-danger btn-sm w-100">
             <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
-        </a>
+        </button>
     </aside>
 
     <!-- MAIN CONTENT -->
@@ -68,19 +81,25 @@
         <header class="topbar d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 sticky-top">
             <div>
                 <h5 class="mb-0 fw-bold">Quản Lý Hàng Hóa, Khuyến Mãi &amp; Bán Hàng (POS)</h5>
-                <small class="text-muted">Bán hàng tại sân, ưu tiên đẩy hàng khuyến mãi cận date / tồn lâu và áp dụng Voucher</small>
+                <small class="text-muted">Bán hàng tại sân, chọn món khuyến mãi, theo dõi HSD món ăn (báo trước 1 ngày) &amp; Voucher</small>
             </div>
-            <div class="d-flex gap-2">
-                <button class="btn btn-outline-warning text-dark btn-sm px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#promoModal">
-                    <i class="bi bi-ticket-perforated-fill me-1"></i> Tạo mã khuyến mãi
+            <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-warning text-dark btn-sm px-3 fw-semibold" onclick="openItemPromoModal()">
+                    <i class="bi bi-tags-fill me-1"></i> Chọn món khuyến mãi
+                </button>
+                <button class="btn btn-outline-primary btn-sm px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#promoModal">
+                    <i class="bi bi-ticket-perforated-fill me-1"></i> Tạo Voucher hóa đơn
                 </button>
                 <button class="btn btn-pitch btn-sm px-3 py-2" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                    <i class="bi bi-plus-lg me-1"></i> Thêm sản phẩm mới
+                    <i class="bi bi-plus-lg me-1"></i> Thêm sản phẩm
                 </button>
             </div>
         </header>
 
         <main class="p-4">
+            <!-- BANNER THÔNG BÁO MÓN ĂN SẮP HẾT HẠN (BÁO TRƯỚC 1 NGÀY) -->
+            <div id="posFoodExpiryBanner" class="food-alert-banner p-3 mb-3 d-none"></div>
+
             <div class="row g-4">
                 <!-- CỘT TRÁI (8 CỘT): DANH MỤC SẢN PHẨM -->
                 <div class="col-lg-8">
@@ -94,7 +113,11 @@
                             <button class="btn btn-outline-secondary" onclick="filterCategory('Đồ ăn', this)">Đồ ăn nhẹ</button>
                             <button class="btn btn-outline-secondary" onclick="filterCategory('Phụ kiện', this)">Phụ kiện</button>
                         </div>
-                        <span class="small text-muted"><i class="bi bi-hand-index-thumb me-1"></i> Bấm sản phẩm để thêm vào hóa đơn</span>
+
+                        <div class="input-group input-group-sm" style="max-width: 240px;">
+                            <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" id="posSearchInput" class="form-control" placeholder="Tìm nhanh món hàng..." oninput="renderProducts()">
+                        </div>
                     </div>
 
                     <div class="row g-3" id="productGrid"></div>
@@ -113,13 +136,13 @@
                             <select id="posCustomerSelect" class="form-select form-select-sm"></select>
                         </div>
 
-                        <!-- Danh sách món đã chọn -->
                         <div id="cartItemsContainer" class="mb-3" style="max-height: 250px; overflow-y: auto;"></div>
 
                         <!-- Chọn Voucher khuyến mãi hóa đơn -->
                         <div class="mb-3 pt-2 border-top">
-                            <label class="form-label small fw-semibold"><i class="bi bi-ticket-perforated text-warning me-1"></i> Chương trình khuyến mãi hóa đơn:</label>
+                            <label class="form-label small fw-semibold"><i class="bi bi-ticket-perforated text-warning me-1"></i> Voucher giảm giá hóa đơn:</label>
                             <select id="posVoucherSelect" class="form-select form-select-sm" onchange="renderCart()"></select>
+                            <div id="voucherWarningHint" class="text-danger small mt-1 d-none" style="font-size: 0.76rem;"></div>
                         </div>
 
                         <div class="border-top pt-2 small">
@@ -128,7 +151,7 @@
                                 <span id="cartGrossAmount">0đ</span>
                             </div>
                             <div class="d-flex justify-content-between text-danger mb-1">
-                                <span>Giảm giá KM (Cận date / Voucher):</span>
+                                <span>Giảm giá KM (Món KM / Voucher):</span>
                                 <span id="cartDiscountAmount">-0đ</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center mb-3 pt-2 border-top">
@@ -145,6 +168,82 @@
         </main>
     </div>
 
+    <!-- MODAL CHỌN MÓN KHUYẾN MÃI -->
+    <div class="modal fade" id="itemPromoModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-warning bg-opacity-10">
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0"><i class="bi bi-tags-fill text-warning me-2"></i>Chọn Món Khuyến Mãi</h5>
+                        <small class="text-muted">Tick chọn một hoặc nhiều sản phẩm để áp dụng giảm giá đẩy bán</small>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                        <div class="d-flex flex-wrap gap-1">
+                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="quickSelectPromoItems('foodUrgent')">
+                                <i class="bi bi-alarm me-1"></i>Chọn món ăn sắp hết hạn (≤1 ngày)
+                            </button>
+                            <button type="button" class="btn btn-outline-warning text-dark btn-sm" onclick="quickSelectPromoItems('needsPromo')">
+                                Chọn tất cả cận HSD / Tồn lâu
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="quickSelectPromoItems('none')">
+                                Bỏ chọn hết
+                            </button>
+                        </div>
+                        <input type="text" id="promoModalSearch" class="form-control form-control-sm" style="max-width: 200px;" placeholder="Tìm món..." oninput="renderItemPromoChecklist()">
+                    </div>
+
+                    <div class="table-responsive border rounded-3 mb-3" style="max-height: 270px; overflow-y: auto;">
+                        <table class="table table-sm table-hover align-middle small mb-0">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th style="width: 36px;" class="text-center">Chọn</th>
+                                    <th>Tên sản phẩm</th>
+                                    <th>Giá gốc</th>
+                                    <th>Hạn sử dụng</th>
+                                    <th>Trạng thái KM</th>
+                                </tr>
+                            </thead>
+                            <tbody id="promoChecklistBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="p-3 bg-light rounded-3 border">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-5">
+                                <label class="form-label small fw-semibold mb-1">Mức giảm giá (%)</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" id="bulkPromoPercent" class="form-control fw-bold" min="0" max="90" value="30">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="setBulkPercent(10)">10%</button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="setBulkPercent(20)">20%</button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="setBulkPercent(30)">30%</button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="setBulkPercent(50)">50%</button>
+                                </div>
+                            </div>
+                            <div class="col-md-7">
+                                <label class="form-label small fw-semibold mb-1">Nhãn chương trình khuyến mãi</label>
+                                <input type="text" id="bulkPromoLabel" class="form-control form-control-sm" value="Khuyến mãi đẩy bán" placeholder="VD: Giảm giá đồ ăn cuối ngày, Ưu đãi cuối tuần...">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="applySelectedItemsPromo(true)">
+                        <i class="bi bi-x-circle me-1"></i> Tắt KM các món đã chọn
+                    </button>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Đóng</button>
+                        <button type="button" class="btn btn-pitch btn-sm px-3" onclick="applySelectedItemsPromo(false)">
+                            <i class="bi bi-check-lg me-1"></i> Áp dụng khuyến mãi (<span id="selectedPromoCount">0</span> món)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL THÊM SẢN PHẨM MỚI -->
     <div class="modal fade" id="addProductModal" tabindex="-1">
         <div class="modal-dialog">
@@ -156,7 +255,7 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label small fw-semibold">Tên sản phẩm</label>
-                        <input type="text" id="newProdName" class="form-control" placeholder="VD: Nước chanh dây đóng chai" required>
+                        <input type="text" id="newProdName" class="form-control" placeholder="VD: Bánh mì thịt nướng / Nước suối" required>
                     </div>
                     <div class="row g-2 mb-3">
                         <div class="col-4">
@@ -179,21 +278,21 @@
                     <div class="row g-2 mb-3">
                         <div class="col-6">
                             <label class="form-label small fw-semibold">Giá nhập vốn (VNĐ)</label>
-                            <input type="number" id="newProdCost" class="form-control" value="6000" step="1000" required>
+                            <input type="number" id="newProdCost" class="form-control" value="6000" step="1000" min="0" required>
                         </div>
                         <div class="col-6">
                             <label class="form-label small fw-semibold">Giá bán tại sân (VNĐ)</label>
-                            <input type="number" id="newProdPrice" class="form-control" value="12000" step="1000" required>
+                            <input type="number" id="newProdPrice" class="form-control" value="12000" step="1000" min="0" required>
                         </div>
                     </div>
                     <div class="row g-2">
                         <div class="col-6">
                             <label class="form-label small fw-semibold">Số lượng tồn ban đầu</label>
-                            <input type="number" id="newProdStock" class="form-control" value="24" required>
+                            <input type="number" id="newProdStock" class="form-control" value="24" min="0" required>
                         </div>
                         <div class="col-6">
                             <label class="form-label small fw-semibold">Mức cảnh báo sắp hết</label>
-                            <input type="number" id="newProdMin" class="form-control" value="10" required>
+                            <input type="number" id="newProdMin" class="form-control" value="10" min="0" required>
                         </div>
                     </div>
                 </div>
@@ -205,12 +304,12 @@
         </div>
     </div>
 
-    <!-- MODAL TẠO MÃ KHUYẾN MÃI HÓA ĐƠN -->
+    <!-- MODAL TẠO VOUCHER HÓA ĐƠN -->
     <div class="modal fade" id="promoModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <form class="modal-content" onsubmit="addPromotion(event)">
                 <div class="modal-header">
-                    <h5 class="modal-title fw-bold">Tạo Chương trình Khuyến mãi Hóa đơn</h5>
+                    <h5 class="modal-title fw-bold">Tạo Voucher Khuyến mãi Hóa đơn</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -244,7 +343,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-pitch">Lưu mã khuyến mãi</button>
+                    <button type="submit" class="btn btn-pitch">Lưu mã Voucher</button>
                 </div>
             </form>
         </div>
@@ -252,9 +351,12 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/data.js"></script>
+    <script src="assets/js/app.js"></script>
     <script>
         let currentCat = 'all';
         let cart = [];
+        let selectedPromoIds = new Set();
+        const itemPromoModal = new bootstrap.Modal(document.getElementById('itemPromoModal'));
 
         function renderCustomerAndVoucherOptions() {
             const db = getPitchData();
@@ -267,33 +369,59 @@
             });
 
             const vSel = document.getElementById('posVoucherSelect');
+            const prevVal = vSel.value;
             vSel.innerHTML = `<option value="">-- Không áp dụng Voucher --</option>`;
             (db.promotions || []).filter(pm => pm.active).forEach(pm => {
                 const desc = pm.type === 'percent' ? `-${pm.value}%` : `-${formatVND(pm.value)}`;
                 vSel.innerHTML += `<option value="${pm.code}">${pm.code} (${desc} • Đơn từ ${formatVND(pm.minOrder)})</option>`;
             });
+            if (prevVal) vSel.value = prevVal;
+        }
+
+        function renderFoodExpiryBanner(db) {
+            const banner = document.getElementById('posFoodExpiryBanner');
+            const summary = getInventoryAlertSummary(db);
+            if (summary.foodUrgentItems.length === 0) {
+                banner.classList.add('d-none');
+                return;
+            }
+
+            const itemsHtml = summary.foodUrgentItems.map(({ p, st }) =>
+                `<strong>${p.name}</strong> (HSD: ${formatDateVN(p.expiryDate)} — <span class="text-decoration-underline">${st.expiryStatusText}</span>)`
+            ).join(' • ');
+
+            banner.innerHTML = `
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 small">
+                    <div class="text-danger">
+                        <i class="bi bi-exclamation-octagon-fill me-1"></i>
+                        <strong>Thông báo đồ ăn sắp hết hạn (trước 1 ngày):</strong> ${itemsHtml}
+                    </div>
+                    <button type="button" class="btn btn-danger btn-sm px-3" onclick="openItemPromoModal('foodUrgent')">
+                        <i class="bi bi-tags-fill me-1"></i> Chọn món này để Khuyến mãi
+                    </button>
+                </div>
+            `;
+            banner.classList.remove('d-none');
         }
 
         function renderProducts() {
             const db = getPitchData();
             const grid = document.getElementById('productGrid');
+            const keyword = (document.getElementById('posSearchInput').value || '').trim().toLowerCase();
             grid.innerHTML = '';
 
-            // Badge cảnh báo tổng trên Sidebar
-            const alertCount = db.products.filter(p => {
-                const st = getProductStatus(p);
-                return st.isLowStock || st.needsPromo;
-            }).length;
-            document.getElementById('lowStockBadge').innerText = alertCount;
+            syncSidebarAlertBadge();
+            renderFoodExpiryBanner(db);
 
             const list = db.products.filter(p => {
+                if (keyword && !p.name.toLowerCase().includes(keyword)) return false;
                 if (currentCat === 'all') return true;
                 if (currentCat === 'promo') return Number(p.discountPercent || 0) > 0 || getProductStatus(p).needsPromo;
                 return p.category === currentCat;
             });
 
             if (list.length === 0) {
-                grid.innerHTML = `<div class="col-12"><div class="card card-custom p-4 text-center text-muted small">Không có sản phẩm nào trong danh mục này.</div></div>`;
+                grid.innerHTML = `<div class="col-12"><div class="card card-custom p-4 text-center text-muted small">Không tìm thấy sản phẩm phù hợp.</div></div>`;
                 return;
             }
 
@@ -302,9 +430,22 @@
                 const hasDisc = Number(p.discountPercent || 0) > 0;
                 const effPrice = getEffectiveSellPrice(p);
 
+                let expiryHtml = '';
+                if (p.expiryDate) {
+                    if (st.isFoodUrgent) {
+                        expiryHtml = `<div class="badge badge-food-urgent mb-1 align-self-start"><i class="bi bi-alarm-fill me-1"></i>HSD: ${formatDateVN(p.expiryDate)} • ${st.expiryStatusText}</div>`;
+                    } else if (st.isExpired) {
+                        expiryHtml = `<div class="badge bg-dark mb-1 align-self-start"><i class="bi bi-x-octagon me-1"></i>HSD: ${formatDateVN(p.expiryDate)} (Hết hạn)</div>`;
+                    } else if (st.isNearExpiry) {
+                        expiryHtml = `<div class="badge badge-near-exp mb-1 align-self-start"><i class="bi bi-hourglass-split me-1"></i>HSD: ${formatDateVN(p.expiryDate)} (còn ${st.daysToExpiry} ngày)</div>`;
+                    } else if (st.isFood) {
+                        expiryHtml = `<div class="text-muted mb-1" style="font-size: 0.74rem;"><i class="bi bi-calendar-event me-1"></i>HSD: <strong>${formatDateVN(p.expiryDate)}</strong></div>`;
+                    }
+                }
+
                 grid.innerHTML += `
                     <div class="col-md-4">
-                        <div class="card product-card ${hasDisc ? 'is-promo' : ''} p-3 h-100 d-flex flex-column" onclick="addToCart('${p.id}')">
+                        <div class="card product-card ${hasDisc ? 'is-promo' : ''} ${st.isFoodUrgent ? 'is-food-urgent' : ''} p-3 h-100 d-flex flex-column" onclick="addToCart('${p.id}')">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <div class="icon-box ${hasDisc ? 'bg-warning bg-opacity-25 text-warning-emphasis' : 'bg-success bg-opacity-10 text-success'}">
                                     <i class="bi ${p.icon || 'bi-box'}"></i>
@@ -315,10 +456,10 @@
                             </div>
 
                             ${hasDisc ? `<span class="badge bg-danger mb-1 align-self-start"><i class="bi bi-fire me-1"></i>-${p.discountPercent}% ${p.promoLabel || 'Khuyến mãi'}</span>` : ''}
-                            ${st.isNearExpiry ? `<span class="text-danger fw-semibold" style="font-size: 0.72rem;"><i class="bi bi-hourglass-split"></i> Cận HSD: còn ${st.daysToExpiry} ngày</span>` : ''}
-                            ${st.isSlowMoving ? `<span class="text-primary fw-semibold" style="font-size: 0.72rem;"><i class="bi bi-clock-history"></i> Tồn lâu ${st.daysSinceSold} ngày</span>` : ''}
+                            ${expiryHtml}
+                            ${st.isSlowMoving ? `<span class="text-primary fw-semibold mb-1" style="font-size: 0.72rem;"><i class="bi bi-clock-history"></i> Tồn lâu ${st.daysSinceSold} ngày</span>` : ''}
 
-                            <span class="text-muted" style="font-size: 0.75rem;">${p.category}</span>
+                            <span class="text-muted" style="font-size: 0.74rem;">${p.category}</span>
                             <h6 class="fw-bold mb-2">${p.name}</h6>
 
                             <div class="mt-auto d-flex justify-content-between align-items-center pt-2 border-top">
@@ -342,6 +483,129 @@
             });
         }
 
+        function openItemPromoModal(preset = '') {
+            selectedPromoIds.clear();
+            document.getElementById('promoModalSearch').value = '';
+            const db = getPitchData();
+            if (preset === 'foodUrgent') {
+                db.products.forEach(p => {
+                    if (getProductStatus(p).isFoodUrgent) selectedPromoIds.add(p.id);
+                });
+                document.getElementById('bulkPromoPercent').value = 30;
+                document.getElementById('bulkPromoLabel').value = 'Xả đồ ăn sắp hết hạn';
+            } else {
+                db.products.forEach(p => {
+                    if (Number(p.discountPercent || 0) > 0) selectedPromoIds.add(p.id);
+                });
+            }
+            renderItemPromoChecklist();
+            itemPromoModal.show();
+        }
+
+        function renderItemPromoChecklist() {
+            const db = getPitchData();
+            const kw = (document.getElementById('promoModalSearch').value || '').trim().toLowerCase();
+            const tbody = document.getElementById('promoChecklistBody');
+
+            const filtered = db.products.filter(p => !kw || p.name.toLowerCase().includes(kw) || p.category.toLowerCase().includes(kw));
+            tbody.innerHTML = filtered.map(p => {
+                const st = getProductStatus(p);
+                const checked = selectedPromoIds.has(p.id) ? 'checked' : '';
+                const hasDisc = Number(p.discountPercent || 0) > 0;
+                return `
+                    <tr class="${st.isFoodUrgent ? 'table-danger bg-opacity-10' : ''}" style="cursor:pointer;" onclick="togglePromoCheckbox('${p.id}')">
+                        <td class="text-center" onclick="event.stopPropagation()">
+                            <input type="checkbox" class="form-check-input" id="chk_promo_${p.id}" ${checked} onchange="togglePromoCheckbox('${p.id}', this.checked)">
+                        </td>
+                        <td>
+                            <div class="fw-semibold">${p.name}</div>
+                            <span class="text-muted" style="font-size:0.72rem;">${p.category} • Tồn: ${p.stock} ${p.unit}</span>
+                        </td>
+                        <td>${formatVND(p.sellPrice)}</td>
+                        <td>
+                            ${p.expiryDate
+                                ? `<span class="${st.isFoodUrgent || st.isExpired ? 'text-danger fw-bold' : 'text-muted'}">${formatDateVN(p.expiryDate)}</span>`
+                                : `<span class="text-muted">--</span>`
+                            }
+                            ${st.isFoodUrgent ? `<div class="text-danger" style="font-size:0.7rem;">${st.expiryStatusText}</div>` : ''}
+                        </td>
+                        <td>
+                            ${hasDisc
+                                ? `<span class="badge bg-warning text-dark">-${p.discountPercent}% (${p.promoLabel || 'KM'})</span>`
+                                : `<span class="text-muted">Chưa KM</span>`
+                            }
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            document.getElementById('selectedPromoCount').innerText = selectedPromoIds.size;
+        }
+
+        function togglePromoCheckbox(prodId, explicitState) {
+            const shouldCheck = explicitState !== undefined ? explicitState : !selectedPromoIds.has(prodId);
+            if (shouldCheck) selectedPromoIds.add(prodId);
+            else selectedPromoIds.delete(prodId);
+            const el = document.getElementById('chk_promo_' + prodId);
+            if (el) el.checked = shouldCheck;
+            document.getElementById('selectedPromoCount').innerText = selectedPromoIds.size;
+        }
+
+        function quickSelectPromoItems(mode) {
+            const db = getPitchData();
+            selectedPromoIds.clear();
+            if (mode === 'foodUrgent') {
+                db.products.forEach(p => { if (getProductStatus(p).isFoodUrgent) selectedPromoIds.add(p.id); });
+                document.getElementById('bulkPromoPercent').value = 30;
+                document.getElementById('bulkPromoLabel').value = 'Xả đồ ăn sắp hết hạn';
+            } else if (mode === 'needsPromo') {
+                db.products.forEach(p => { if (getProductStatus(p).needsPromo) selectedPromoIds.add(p.id); });
+                document.getElementById('bulkPromoPercent').value = 25;
+                document.getElementById('bulkPromoLabel').value = 'Xả hàng cận HSD / tồn kho';
+            }
+            renderItemPromoChecklist();
+        }
+
+        function setBulkPercent(val) {
+            document.getElementById('bulkPromoPercent').value = val;
+        }
+
+        function applySelectedItemsPromo(turnOff) {
+            if (selectedPromoIds.size === 0) {
+                showToast('Vui lòng tick chọn ít nhất 1 món hàng!', 'warning');
+                return;
+            }
+            const db = getPitchData();
+            const pct = turnOff ? 0 : Math.min(90, Math.max(0, Number(document.getElementById('bulkPromoPercent').value) || 0));
+            const label = turnOff ? '' : (document.getElementById('bulkPromoLabel').value.trim() || 'Khuyến mãi');
+
+            if (!turnOff && pct <= 0) {
+                showToast('Mức giảm giá phải lớn hơn 0%!', 'warning');
+                return;
+            }
+
+            let updatedCount = 0;
+            db.products.forEach(p => {
+                if (selectedPromoIds.has(p.id)) {
+                    p.discountPercent = pct;
+                    p.promoLabel = label;
+                    updatedCount++;
+                    const inCart = cart.find(c => c.id === p.id);
+                    if (inCart) inCart.price = getEffectiveSellPrice(p);
+                }
+            });
+
+            savePitchData(db);
+            itemPromoModal.hide();
+            renderProducts();
+            renderCart();
+            showToast(
+                turnOff
+                    ? `Đã tắt khuyến mãi cho ${updatedCount} món đã chọn.`
+                    : `Đã áp dụng khuyến mãi -${pct}% (${label}) cho ${updatedCount} món!`,
+                'success'
+            );
+        }
+
         function editProductPrice(prodId) {
             const db = getPitchData();
             const prod = db.products.find(p => p.id === prodId);
@@ -357,6 +621,7 @@
                     renderCart();
                 }
                 renderProducts();
+                showToast(`Đã cập nhật giá bán cho ${prod.name}!`, 'success');
             }
         }
 
@@ -371,14 +636,14 @@
             const db = getPitchData();
             const prod = db.products.find(p => p.id === prodId);
             if (!prod || prod.stock <= 0) {
-                alert('Sản phẩm này đã hết hàng trong kho!');
+                showToast('Sản phẩm này đã hết hàng trong kho!', 'danger');
                 return;
             }
             const effPrice = getEffectiveSellPrice(prod);
             const item = cart.find(c => c.id === prodId);
             if (item) {
                 if (item.qty >= prod.stock) {
-                    alert('Số lượng chọn vượt quá tồn kho hiện tại!');
+                    showToast('Số lượng chọn vượt quá tồn kho hiện tại!', 'warning');
                     return;
                 }
                 item.qty++;
@@ -401,7 +666,7 @@
             const item = cart.find(c => c.id === prodId);
             if (!item) return;
             if (delta > 0 && prod && item.qty >= prod.stock) {
-                alert('Số lượng chọn vượt quá tồn kho hiện tại!');
+                showToast('Số lượng chọn vượt quá tồn kho hiện tại!', 'warning');
                 return;
             }
             item.qty += delta;
@@ -425,28 +690,38 @@
             const productDiscount = Math.max(0, gross - netItems);
 
             let voucherDiscount = 0;
+            let voucherWarning = '';
             const voucherCode = document.getElementById('posVoucherSelect').value;
             if (voucherCode) {
                 const pm = (db.promotions || []).find(x => x.code === voucherCode);
-                if (pm && netItems >= Number(pm.minOrder || 0)) {
-                    voucherDiscount = pm.type === 'percent'
-                        ? Math.round(netItems * (Number(pm.value) / 100))
-                        : Math.min(netItems, Number(pm.value));
+                if (pm) {
+                    const minOrd = Number(pm.minOrder || 0);
+                    if (netItems >= minOrd) {
+                        voucherDiscount = pm.type === 'percent'
+                            ? Math.round(netItems * (Number(pm.value) / 100))
+                            : Math.min(netItems, Number(pm.value));
+                    } else if (cart.length > 0) {
+                        const needMore = minOrd - netItems;
+                        voucherWarning = `Chưa đủ điều kiện mã ${pm.code}: Cần mua thêm ${formatVND(needMore)} (đơn tối thiểu ${formatVND(minOrd)}).`;
+                    }
                 }
             }
 
             const totalDiscount = productDiscount + voucherDiscount;
             const finalTotal = Math.max(0, netItems - voucherDiscount);
-            return { gross, productDiscount, voucherCode, voucherDiscount, totalDiscount, finalTotal };
+            return { gross, productDiscount, voucherCode: voucherDiscount > 0 ? voucherCode : '', voucherDiscount, voucherWarning, totalDiscount, finalTotal };
         }
 
         function renderCart() {
             const container = document.getElementById('cartItemsContainer');
+            const warnEl = document.getElementById('voucherWarningHint');
+
             if (cart.length === 0) {
                 container.innerHTML = `<div class="text-center text-muted py-4 small">Chưa có mặt hàng nào được chọn</div>`;
                 document.getElementById('cartGrossAmount').innerText = '0đ';
                 document.getElementById('cartDiscountAmount').innerText = '-0đ';
                 document.getElementById('cartTotalAmount').innerText = '0đ';
+                warnEl.classList.add('d-none');
                 return;
             }
 
@@ -471,11 +746,18 @@
             document.getElementById('cartGrossAmount').innerText = formatVND(calc.gross);
             document.getElementById('cartDiscountAmount').innerText = `-${formatVND(calc.totalDiscount)}`;
             document.getElementById('cartTotalAmount').innerText = formatVND(calc.finalTotal);
+
+            if (calc.voucherWarning) {
+                warnEl.innerHTML = `<i class="bi bi-info-circle me-1"></i>${calc.voucherWarning}`;
+                warnEl.classList.remove('d-none');
+            } else {
+                warnEl.classList.add('d-none');
+            }
         }
 
         function checkoutPOS() {
             if (cart.length === 0) {
-                alert('Vui lòng chọn ít nhất 1 sản phẩm để thanh toán!');
+                showToast('Vui lòng chọn ít nhất 1 sản phẩm để thanh toán!', 'warning');
                 return;
             }
             const db = getPitchData();
@@ -494,7 +776,7 @@
                 dayIndex: getTodayDayIndex(),
                 paid: true,
                 time: nowStr,
-                voucherCode: calc.voucherCode || '',
+                voucherCode: calc.voucherCode,
                 voucherDiscount: calc.voucherDiscount,
                 items: cart.map(item => ({
                     productId: item.id,
@@ -504,7 +786,6 @@
                 }))
             });
 
-            // Trừ kho, cập nhật ngày bán gần nhất & ghi log xuất kho
             cart.forEach(item => {
                 const prod = db.products.find(p => p.id === item.id);
                 if (prod) {
@@ -523,18 +804,20 @@
             });
 
             savePitchData(db);
-            alert(`Đã thanh toán ${formatVND(calc.finalTotal)} (Tiết kiệm KM: ${formatVND(calc.totalDiscount)})! Tồn kho & Doanh thu đã tự động cập nhật.`);
             clearCart();
             renderProducts();
+            showToast(`Thanh toán thành công ${formatVND(calc.finalTotal)}! Tồn kho & doanh thu đã cập nhật.`, 'success');
         }
 
         function addNewProduct(e) {
             e.preventDefault();
             const db = getPitchData();
+            const cat = document.getElementById('newProdCat').value;
+            const iconMap = { 'Nước uống': 'bi-cup-straw', 'Đồ ăn': 'bi-egg-fried', 'Phụ kiện': 'bi-universal-access' };
             db.products.push({
                 id: 'SP' + Date.now().toString().slice(-3),
                 name: document.getElementById('newProdName').value.trim(),
-                category: document.getElementById('newProdCat').value,
+                category: cat,
                 unit: document.getElementById('newProdUnit').value.trim(),
                 supplierId: (db.suppliers && db.suppliers[0]) ? db.suppliers[0].id : 'NCC01',
                 costPrice: Number(document.getElementById('newProdCost').value),
@@ -545,20 +828,26 @@
                 lastSoldDate: getTodayISO(),
                 discountPercent: 0,
                 promoLabel: '',
-                icon: 'bi-cup-straw'
+                icon: iconMap[cat] || 'bi-box'
             });
             savePitchData(db);
             bootstrap.Modal.getInstance(document.getElementById('addProductModal')).hide();
             e.target.reset();
             renderProducts();
+            showToast('Đã thêm sản phẩm mới vào danh mục POS!', 'success');
         }
 
         function addPromotion(e) {
             e.preventDefault();
             const db = getPitchData();
+            const code = document.getElementById('promoCode').value.trim().toUpperCase();
+            if ((db.promotions || []).some(x => x.code === code)) {
+                showToast(`Mã Voucher "${code}" đã tồn tại!`, 'warning');
+                return;
+            }
             db.promotions.push({
                 id: 'KM' + Date.now().toString().slice(-3),
-                code: document.getElementById('promoCode').value.trim().toUpperCase(),
+                code,
                 name: document.getElementById('promoName').value.trim(),
                 type: document.getElementById('promoType').value,
                 value: Number(document.getElementById('promoValue').value),
@@ -569,12 +858,17 @@
             bootstrap.Modal.getInstance(document.getElementById('promoModal')).hide();
             e.target.reset();
             renderCustomerAndVoucherOptions();
-            alert('Đã tạo mã khuyến mãi mới thành công!');
+            showToast(`Đã tạo mã Voucher "${code}" thành công!`, 'success');
         }
 
         renderCustomerAndVoucherOptions();
         renderProducts();
         renderCart();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('openPromo') === 'food') {
+            openItemPromoModal('foodUrgent');
+        }
     </script>
 </body>
 </html>
