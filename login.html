@@ -82,9 +82,7 @@
         <!-- CỘT TRÁI: BANNER HỆ THỐNG -->
         <div class="col-lg-6 d-none d-lg-flex flex-column justify-content-between p-5 login-banner">
             <div class="d-flex align-items-center gap-2">
-                <div class="bg-success rounded-3 p-2 d-flex align-items-center justify-content-center shadow-sm">
-                    <i class="bi bi-dribbble fs-3 text-white"></i>
-                </div>
+                <div class="brand-logo-box login-brand-logo" style="width: 48px; height: 48px;"></div>
                 <div>
                     <h4 class="mb-0 fw-bold">openPitch</h4>
                     <small class="opacity-75" style="font-size: 0.78rem;">Quản lý sân bóng phong trào</small>
@@ -149,9 +147,7 @@
 
                 <!-- Logo hiện trên mobile -->
                 <div class="d-flex d-lg-none align-items-center gap-2 mb-3">
-                    <div class="bg-success rounded-3 p-2 d-flex align-items-center justify-content-center">
-                        <i class="bi bi-dribbble fs-5 text-white"></i>
-                    </div>
+                    <div class="brand-logo-box login-brand-logo" style="width: 40px; height: 40px;"></div>
                     <h5 class="mb-0 fw-bold">openPitch</h5>
                 </div>
 
@@ -449,6 +445,42 @@
             document.getElementById("loginUsername").value = remembered;
         }
         renderQuickAccounts();
+
+        // Hiển thị logo openPitch mới (tự đồng bộ từ logo đã tải lên hoặc assets/img/logo.jpg / SVG sân bóng)
+        (function initLoginLogo() {
+            const svgFallback = `
+                <svg viewBox="0 0 64 64" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                  <defs><linearGradient id="opBgL" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#22C55E"/><stop offset="100%" stop-color="#047857"/></linearGradient></defs>
+                  <rect width="64" height="64" rx="14" fill="url(#opBgL)"/>
+                  <rect x="9" y="13" width="46" height="38" rx="5" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-opacity="0.92"/>
+                  <line x1="32" y1="13" x2="32" y2="51" stroke="#FFFFFF" stroke-width="2.2" stroke-opacity="0.85"/>
+                  <path d="M9 24 H16 V40 H9" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-opacity="0.85"/>
+                  <path d="M55 24 H48 V40 H55" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-opacity="0.85"/>
+                  <circle cx="32" cy="32" r="9.5" fill="#064E3B" stroke="#FFFFFF" stroke-width="2.5"/>
+                  <polygon points="32,26 37,29.6 35.1,35.4 28.9,35.4 27,29.6" fill="#FFFFFF"/>
+                </svg>`;
+            const customLogo = localStorage.getItem("OPENPITCH_CUSTOM_LOGO");
+            document.querySelectorAll(".login-brand-logo").forEach(box => {
+                const img = document.createElement("img");
+                img.alt = "openPitch Logo";
+                if (customLogo) {
+                    img.src = customLogo;
+                    img.onerror = () => { box.innerHTML = svgFallback; };
+                } else {
+                    img.src = "assets/img/logo.jpg";
+                    img.dataset.triedPng = "0";
+                    img.onerror = function() {
+                        if (this.dataset.triedPng === "0") {
+                            this.dataset.triedPng = "1";
+                            this.src = "assets/img/logo.png";
+                        } else {
+                            box.innerHTML = svgFallback;
+                        }
+                    };
+                }
+                box.appendChild(img);
+            });
+        })();
     </script>
 </body>
 </html>

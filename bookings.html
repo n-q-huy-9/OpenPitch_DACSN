@@ -133,7 +133,13 @@
 
                 <div class="d-flex flex-wrap align-items-center gap-2">
                     <span class="small fw-semibold text-success" id="selectedDateSummary"></span>
-                    <div class="btn-group btn-group-sm" role="group">
+                    <div class="btn-group btn-group-sm" role="group" id="pitchTypeFilterGroup">
+                        <button class="btn btn-outline-success active" onclick="filterPitchType('all', this)">Tất cả sân</button>
+                        <button class="btn btn-outline-success" onclick="filterPitchType('Sân 5 người', this)">Sân 5</button>
+                        <button class="btn btn-outline-success" onclick="filterPitchType('Sân 7 người', this)">Sân 7</button>
+                        <button class="btn btn-outline-success" onclick="filterPitchType('Sân 11 người', this)">Sân 11</button>
+                    </div>
+                    <div class="btn-group btn-group-sm" role="group" id="periodFilterGroup">
                         <button class="btn btn-outline-secondary active" onclick="filterPeriod('all', this)">Cả ngày (04-23h)</button>
                         <button class="btn btn-outline-secondary" onclick="filterPeriod('morning', this)">Sáng (04-12h)</button>
                         <button class="btn btn-outline-secondary" onclick="filterPeriod('afternoon', this)">Chiều (12-17h)</button>
@@ -143,7 +149,7 @@
             </div>
 
             <div class="card card-custom overflow-hidden">
-                <div class="table-responsive">
+                <div class="table-responsive schedule-viewport">
                     <table class="table table-bordered schedule-table mb-0">
                         <thead class="table-light" id="scheduleHead"></thead>
                         <tbody id="scheduleBody"></tbody>
@@ -248,6 +254,7 @@
     <script>
         let selectedDate = getTodayISO();
         let currentPeriod = 'all';
+        let currentPitchType = 'all';
         const bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'));
 
         document.getElementById('bookingDatePicker').value = selectedDate;
@@ -273,7 +280,14 @@
 
         function filterPeriod(period, btn) {
             currentPeriod = period;
-            document.querySelectorAll('.btn-group .btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('#periodFilterGroup .btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderSchedule();
+        }
+
+        function filterPitchType(type, btn) {
+            currentPitchType = type;
+            document.querySelectorAll('#pitchTypeFilterGroup .btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             renderSchedule();
         }
@@ -286,15 +300,21 @@
             document.getElementById('selectedDateSummary').innerText =
                 `Ngày ${formatDateVN(selectedDate)}: ${dayBookings.length} ca đã đặt`;
 
+            const visiblePitches = db.pitches.filter(p => currentPitchType === 'all' || p.type === currentPitchType);
+
             const head = document.getElementById('scheduleHead');
             let headHtml = `<tr><th class="text-center time-col">Khung giờ / Sân</th>`;
-            db.pitches.forEach(p => {
-                headHtml += `
-                    <th class="text-center">
-                        <div class="fw-bold">${p.name}</div>
-                        <small class="text-muted fw-normal">${p.type}</small>
-                    </th>`;
-            });
+            if (visiblePitches.length === 0) {
+                headHtml += `<th class="text-center text-muted fw-normal py-3">Chưa có sân thuộc loại "${currentPitchType}" (Bạn có thể thêm ở mục Quản lý sân bóng)</th>`;
+            } else {
+                visiblePitches.forEach(p => {
+                    headHtml += `
+                        <th class="text-center">
+                            <div class="fw-bold">${p.name}</div>
+                            <small class="text-muted fw-normal">${p.type}</small>
+                        </th>`;
+                });
+            }
             headHtml += `</tr>`;
             head.innerHTML = headHtml;
 
@@ -316,7 +336,10 @@
                             </span>
                         </td>`;
 
-                db.pitches.forEach(pitch => {
+                if (visiblePitches.length === 0) {
+                    rowHtml += `<td class="text-center text-muted small align-middle">--</td>`;
+                }
+                visiblePitches.forEach(pitch => {
                     const matched = dayBookings
                         .filter(b => b.pitchId === pitch.id && b.startTime && b.endTime)
                         .filter(b => timeToMinutes(b.startTime) < slotEndMin && timeToMinutes(b.endTime) > slotStartMin)
@@ -396,6 +419,9 @@
                 rowHtml += `</tr>`;
                 body.innerHTML += rowHtml;
             });
+            if (typeof refreshAllHorizontalScrollBars === 'function') {
+                refreshAllHorizontalScrollBars();
+            }
         }
 
         // Cho phép giữ lại đúng sân cũ nếu đang sửa lịch của sân đang bảo trì

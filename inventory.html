@@ -314,6 +314,10 @@
             tbody.innerHTML = '';
             prodSelect.innerHTML = '';
             supSelect.innerHTML = (db.suppliers || []).map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            const supCatSel = document.getElementById('supCat');
+            if (supCatSel && Array.isArray(db.categories)) {
+                supCatSel.innerHTML = db.categories.map(c => `<option value="${c}">${c}</option>`).join('');
+            }
 
             supBox.innerHTML = (db.suppliers || []).map(s => `
                 <div class="border-bottom py-2 small">
@@ -410,9 +414,18 @@
                 tbody.innerHTML += `
                     <tr class="${st.isFoodUrgent || st.isExpired || st.isLowStock ? 'table-danger bg-opacity-10' : (st.isNearExpiry ? 'table-warning bg-opacity-10' : '')}">
                         <td>
-                            <div class="fw-bold">${p.name}</div>
-                            <div class="text-muted" style="font-size: 0.74rem;">
-                                ${p.id} • ${p.category} • <i class="bi bi-truck"></i> ${getSupplierName(db, p.supplierId)}
+                            <div class="d-flex align-items-center gap-2">
+                                ${p.image
+                                    ? `<img src="${p.image}" alt="${p.name}" class="inv-thumb" loading="lazy" onerror="handleProductImgError(this, '${p.icon || 'bi-box-seam'}', true)">`
+                                    : `<div class="inv-thumb-fallback"><i class="bi ${p.icon || 'bi-box-seam'}"></i></div>`
+                                }
+                                <div>
+                                    <div class="fw-bold">${p.name}</div>
+                                    <div class="text-muted" style="font-size: 0.74rem;">
+                                        ${p.id} • ${p.category} • <i class="bi bi-truck"></i> ${getSupplierName(db, p.supplierId)}
+                                    </div>
+                                    ${Array.isArray(p.sizes) && p.sizes.length > 0 ? `<div class="text-primary fw-semibold" style="font-size: 0.71rem;"><i class="bi bi-rulers me-1"></i>Size: ${p.sizes.join(', ')}</div>` : ''}
+                                </div>
                             </div>
                         </td>
                         <td>
@@ -602,6 +615,13 @@
         }
 
         renderInventory();
+
+        // Tự động mở phiếu Nhập / Xuất kho đúng sản phẩm nếu chuyển từ nút Sửa bên POS sang
+        const invParams = new URLSearchParams(window.location.search);
+        const importTargetId = invParams.get('import');
+        if (importTargetId) {
+            openStockModal(importTargetId);
+        }
     </script>
 </body>
 </html>
