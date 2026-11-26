@@ -731,3 +731,134 @@ body {
 .schedule-table thead th.time-col {
     z-index: 8;
 }
+
+/* --- HỆ THỐNG ĐÁNH GIÁ SAO & BÌNH LUẬN SẢN PHẨM --- */
+.op-stars {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    line-height: 1;
+}
+
+.product-rating-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 4px 8px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    font-size: 0.76rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.product-rating-row:hover {
+    background: #FEF3C7;
+    border-color: #F59E0B;
+}
+.product-rating-row.no-review {
+    background: #F8FAFC;
+    border-color: #E2E8F0;
+    color: #94A3B8;
+}
+.product-rating-row.no-review:hover {
+    background: #F1F5F9;
+    color: #475569;
+}
+
+/* Bộ chọn 1-5 sao tương tác */
+.star-picker {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.star-picker-btn {
+    border: none;
+    background: transparent;
+    padding: 2px;
+    font-size: 2rem;
+    line-height: 1;
+    color: #CBD5E1;
+    cursor: pointer;
+    transition: transform 0.14s ease, color 0.14s ease;
+}
+.star-picker-btn:hover {
+    transform: scale(1.16);
+}
+.star-picker-btn.active,
+.star-picker-btn.hovered {
+    color: #F59E0B;
+}
+
+/* Danh sách món trong đơn vừa mua để đánh giá */
+.order-review-item-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 10px;
+    border: 1.5px solid #CBD5E1;
+    background: #FFFFFF;
+    color: #334155;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.order-review-item-pill:hover {
+    border-color: #16A34A;
+    color: #15803D;
+}
+.order-review-item-pill.active {
+    background: #F0FDF4;
+    border-color: #16A34A;
+    color: #15803D;
+    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.18);
+}
+.order-review-item-pill.done {
+    background: #ECFDF5;
+    border-color: #86EFAC;
+    color: #166534;
+}
+
+/* Thanh thống kê 5 -> 1 sao trong Modal Xem đánh giá */
+.rating-bar-track {
+    height: 8px;
+    border-radius: 999px;
+    background: #E2E8F0;
+    overflow: hidden;
+    flex: 1;
+}
+.rating-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #F59E0B, #FBBF24);
+    transition: width 0.25s ease;
+}
+
+.review-card {
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 12px 14px;
+    background: #FFFFFF;
+    margin-bottom: 10px;
+}
+.review-avatar {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    background: #DCFCE7;
+    color: #15803D;
+}
+.review-avatar.is-anon {
+    background: #E2E8F0;
+    color: #475569;
+}

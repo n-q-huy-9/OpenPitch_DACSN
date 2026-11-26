@@ -21,6 +21,61 @@ function addDaysISO(days) {
     return `${y}-${m}-${d}`;
 }
 
+function formatDateTimeVN(dateObj = new Date()) {
+    const dt = dateObj instanceof Date ? dateObj : new Date(dateObj);
+    const d = String(dt.getDate()).padStart(2, "0");
+    const m = String(dt.getMonth() + 1).padStart(2, "0");
+    const y = dt.getFullYear();
+    const hh = String(dt.getHours()).padStart(2, "0");
+    const mm = String(dt.getMinutes()).padStart(2, "0");
+    return `${d}/${m}/${y} ${hh}:${mm}`;
+}
+
+// Tính thống kê đánh giá sao chuẩn xác (VD: 4 và 5 sao -> (4 + 5) / 2 = 4.5)
+function getProductRatingStats(product) {
+    const reviews = Array.isArray(product && product.reviews) ? product.reviews : [];
+    const count = reviews.length;
+    const breakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    if (count === 0) {
+        return { count: 0, avg: 0, avgDisplay: "0.0", breakdown };
+    }
+    let sum = 0;
+    reviews.forEach(r => {
+        const s = Math.min(5, Math.max(1, Math.round(Number(r.rating) || 5)));
+        sum += s;
+        breakdown[s]++;
+    });
+    const avg = sum / count;
+    const avgRounded = Math.round(avg * 10) / 10;
+    const avgDisplay = Number.isInteger(avgRounded) ? `${avgRounded}.0` : String(avgRounded);
+    return { count, avg: avgRounded, avgDisplay, breakdown };
+}
+
+// Render 5 ngôi sao đầy / nửa / rỗng theo điểm trung bình
+function renderStarsHtml(rating, extraClass = "") {
+    const val = Number(rating || 0);
+    let html = `<span class="op-stars ${extraClass}">`;
+    for (let i = 1; i <= 5; i++) {
+        if (val >= i - 0.25) {
+            html += `<i class="bi bi-star-fill text-warning"></i>`;
+        } else if (val >= i - 0.75) {
+            html += `<i class="bi bi-star-half text-warning"></i>`;
+        } else {
+            html += `<i class="bi bi-star text-warning opacity-50"></i>`;
+        }
+    }
+    html += `</span>`;
+    return html;
+}
+
+// Kiểm tra sản phẩm đã từng được mua online trên web hay chưa
+function hasOnlinePurchase(db, productId) {
+    return (db.posOrders || []).some(order =>
+        order.channel === "online" &&
+        (order.items || []).some(it => it.productId === productId)
+    );
+}
+
 function formatDateVN(isoDate) {
     if (!isoDate || typeof isoDate !== "string") return "";
     const parts = isoDate.split("-");
@@ -192,15 +247,15 @@ function buildDefaultData() {
         ],
 
         products: [
-            { id: "SP01", name: "Nước bù khoáng Revive Chanh Muối", category: "Nước uống", unit: "Chai", supplierId: "NCC01", costPrice: 7500, sellPrice: 12000, stock: 6, minStock: 24, expiryDate: addDaysISO(65), lastSoldDate: today, discountPercent: 0, promoLabel: "", image: "assets/img/sp01.jpg", images: ["assets/img/sp01.jpg"], sizeType: "none", sizes: [], icon: "bi-cup-straw" },
-            { id: "SP02", name: "Nước tăng lực RedBull (Bò húc)", category: "Nước uống", unit: "Lon", supplierId: "NCC01", costPrice: 10000, sellPrice: 15000, stock: 8, minStock: 24, expiryDate: addDaysISO(12), lastSoldDate: today, discountPercent: 0, promoLabel: "", image: "assets/img/sp02.jpg", images: ["assets/img/sp02.jpg"], sizeType: "none", sizes: [], icon: "bi-lightning-charge-fill" },
-            { id: "SP03", name: "Nước suối Aquafina 500ml", category: "Nước uống", unit: "Chai", supplierId: "NCC01", costPrice: 4000, sellPrice: 8000, stock: 65, minStock: 30, expiryDate: addDaysISO(120), lastSoldDate: today, discountPercent: 0, promoLabel: "", image: "assets/img/sp03.jpg", images: ["assets/img/sp03.jpg"], sizeType: "none", sizes: [], icon: "bi-droplet-fill" },
-            { id: "SP04", name: "Trà đá ca lớn (Phục vụ tại sân)", category: "Nước uống", unit: "Ca", supplierId: "NCC01", costPrice: 3000, sellPrice: 15000, stock: 50, minStock: 10, expiryDate: "", lastSoldDate: today, discountPercent: 0, promoLabel: "", image: "assets/img/sp04.jpg", images: ["assets/img/sp04.jpg"], sizeType: "none", sizes: [], icon: "bi-cup-hot" },
-            { id: "SP05", name: "Mì tôm trứng xúc xích", category: "Đồ ăn", unit: "Tô", supplierId: "NCC02", costPrice: 12000, sellPrice: 25000, stock: 35, minStock: 10, expiryDate: addDaysISO(10), lastSoldDate: addDaysISO(-2), discountPercent: 0, promoLabel: "", image: "assets/img/sp05.jpg", images: ["assets/img/sp05.jpg"], sizeType: "none", sizes: [], icon: "bi-egg-fried" },
-            { id: "SP06", name: "Bánh mì ngọt / Xúc xích nướng", category: "Đồ ăn", unit: "Cái", supplierId: "NCC02", costPrice: 8000, sellPrice: 15000, stock: 18, minStock: 10, expiryDate: addDaysISO(1), lastSoldDate: addDaysISO(-1), discountPercent: 30, promoLabel: "Xả đồ ăn cận HSD", image: "assets/img/sp06.jpg", images: ["assets/img/sp06.jpg"], sizeType: "none", sizes: [], icon: "bi-bag-heart" },
-            { id: "SP07", name: "Băng keo thể thao cuốn cổ chân", category: "Phụ kiện", unit: "Cuộn", supplierId: "NCC03", costPrice: 8000, sellPrice: 15000, stock: 4, minStock: 10, expiryDate: "", lastSoldDate: addDaysISO(-3), discountPercent: 0, promoLabel: "", image: "assets/img/sp07.jpg", images: ["assets/img/sp07.jpg"], sizeType: "none", sizes: [], icon: "bi-bandaid" },
-            { id: "SP08", name: "Tất dệt kim chống trượt (Mẫu 2025)", category: "Phụ kiện", unit: "Đôi", supplierId: "NCC03", costPrice: 18000, sellPrice: 35000, stock: 22, minStock: 10, expiryDate: "", lastSoldDate: addDaysISO(-45), discountPercent: 20, promoLabel: "Xả mẫu cũ tồn kho", image: "assets/img/sp08.jpg", images: ["assets/img/sp08.jpg"], sizeType: "none", sizes: [], icon: "bi-universal-access" },
-            { id: "SP09", name: "Thuê Áo Bib chia đội (10 áo/bộ)", category: "Phụ kiện", unit: "Bộ", supplierId: "NCC03", costPrice: 0, sellPrice: 30000, stock: 12, minStock: 3, expiryDate: "", lastSoldDate: today, discountPercent: 0, promoLabel: "", image: "assets/img/sp09.jpg", images: ["assets/img/sp09.jpg"], sizeType: "none", sizes: [], icon: "bi-person-badge" }
+            { id: "SP01", name: "Nước bù khoáng Revive Chanh Muối", category: "Nước uống", unit: "Chai", supplierId: "NCC01", costPrice: 7500, sellPrice: 12000, stock: 6, minStock: 24, expiryDate: addDaysISO(65), lastSoldDate: today, discountPercent: 0, promoLabel: "", image: "assets/img/sp01.jpg", images: ["assets/img/sp01.jpg"], sizeType: "none", sizes: [], reviews: [], icon: "bi-cup-straw" },
+            { id: "SP02", name: "Nước tăng lực RedBull (Bò húc)", category: "Nước uống", unit: "Lon", supplierId: "NCC01", costPrice: 10000, sellPrice: 15000, stock: 8, minStock: 24, expiryDate: addDaysISO(12), lastSoldDate: today, discountPercent: 0, promoLabel: "", image: "assets/img/sp02.jpg", images: ["assets/img/sp02.jpg"], sizeType: "none", sizes: [], reviews: [], icon: "bi-lightning-charge-fill" },
+            { id: "SP03", name: "Nước suối Aquafina 500ml", category: "Nước uống", unit: "Chai", supplierId: "NCC01", costPrice: 4000, sellPrice: 8000, stock: 65, minStock: 30, expiryDate: addDaysISO(120), lastSoldDate: today, discountPercent: 0, promoLabel: "", image: "assets/img/sp03.jpg", images: ["assets/img/sp03.jpg"], sizeType: "none", sizes: [], reviews: [], icon: "bi-droplet-fill" },
+            { id: "SP04", name: "Trà đá ca lớn (Phục vụ tại sân)", category: "Nước uống", unit: "Ca", supplierId: "NCC01", costPrice: 3000, sellPrice: 15000, stock: 50, minStock: 10, expiryDate: "", lastSoldDate: today, discountPercent: 0, promoLabel: "", image: "assets/img/sp04.jpg", images: ["assets/img/sp04.jpg"], sizeType: "none", sizes: [], reviews: [], icon: "bi-cup-hot" },
+            { id: "SP05", name: "Mì tôm trứng xúc xích", category: "Đồ ăn", unit: "Tô", supplierId: "NCC02", costPrice: 12000, sellPrice: 25000, stock: 35, minStock: 10, expiryDate: addDaysISO(10), lastSoldDate: addDaysISO(-2), discountPercent: 0, promoLabel: "", image: "assets/img/sp05.jpg", images: ["assets/img/sp05.jpg"], sizeType: "none", sizes: [], reviews: [], icon: "bi-egg-fried" },
+            { id: "SP06", name: "Bánh mì ngọt / Xúc xích nướng", category: "Đồ ăn", unit: "Cái", supplierId: "NCC02", costPrice: 8000, sellPrice: 15000, stock: 18, minStock: 10, expiryDate: addDaysISO(1), lastSoldDate: addDaysISO(-1), discountPercent: 30, promoLabel: "Xả đồ ăn cận HSD", image: "assets/img/sp06.jpg", images: ["assets/img/sp06.jpg"], sizeType: "none", sizes: [], reviews: [], icon: "bi-bag-heart" },
+            { id: "SP07", name: "Băng keo thể thao cuốn cổ chân", category: "Phụ kiện", unit: "Cuộn", supplierId: "NCC03", costPrice: 8000, sellPrice: 15000, stock: 4, minStock: 10, expiryDate: "", lastSoldDate: addDaysISO(-3), discountPercent: 0, promoLabel: "", image: "assets/img/sp07.jpg", images: ["assets/img/sp07.jpg"], sizeType: "none", sizes: [], reviews: [], icon: "bi-bandaid" },
+            { id: "SP08", name: "Tất dệt kim chống trượt (Mẫu 2025)", category: "Phụ kiện", unit: "Đôi", supplierId: "NCC03", costPrice: 18000, sellPrice: 35000, stock: 22, minStock: 10, expiryDate: "", lastSoldDate: addDaysISO(-45), discountPercent: 20, promoLabel: "Xả mẫu cũ tồn kho", image: "assets/img/sp08.jpg", images: ["assets/img/sp08.jpg"], sizeType: "none", sizes: [], reviews: [], icon: "bi-universal-access" },
+            { id: "SP09", name: "Thuê Áo Bib chia đội (10 áo/bộ)", category: "Phụ kiện", unit: "Bộ", supplierId: "NCC03", costPrice: 0, sellPrice: 30000, stock: 12, minStock: 3, expiryDate: "", lastSoldDate: today, discountPercent: 0, promoLabel: "", image: "assets/img/sp09.jpg", images: ["assets/img/sp09.jpg"], sizeType: "none", sizes: [], reviews: [], icon: "bi-person-badge" }
         ],
 
         posOrders: [
@@ -259,6 +314,11 @@ function buildDefaultData() {
 
 function getPitchData() {
     const raw = localStorage.getItem("OPENPITCH_DB");
+    if (window.OPENPITCH_SAVED_DB && localStorage.getItem("OPENPITCH_DB_VERSION") !== window.OPENPITCH_SAVED_VERSION) {
+    localStorage.setItem("OPENPITCH_DB", JSON.stringify(window.OPENPITCH_SAVED_DB));
+    localStorage.setItem("OPENPITCH_DB_VERSION", window.OPENPITCH_SAVED_VERSION);
+    return JSON.parse(JSON.stringify(window.OPENPITCH_SAVED_DB));
+    }
     if (!raw) {
         const fresh = buildDefaultData();
         localStorage.setItem("OPENPITCH_DB", JSON.stringify(fresh));
@@ -293,6 +353,7 @@ function getPitchData() {
         }
         if (!p.image && p.images.length > 0) { p.image = p.images[0]; migrated = true; }
         if (!Array.isArray(p.sizes)) { p.sizes = []; migrated = true; }
+        if (!Array.isArray(p.reviews)) { p.reviews = []; migrated = true; }
         if (!p.sizeType) { p.sizeType = p.sizes.length > 0 ? "custom" : "none"; migrated = true; }
         if (p.category && !parsed.categories.includes(p.category)) {
             parsed.categories.push(p.category);
