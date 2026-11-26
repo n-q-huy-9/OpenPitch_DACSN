@@ -13,7 +13,7 @@ function getTodayISO() {
 }
 
 function addDaysISO(days) {
-    const dt = new Date();
+    const dt = new Date(); 
     dt.setDate(dt.getDate() + days);
     const y = dt.getFullYear();
     const m = String(dt.getMonth() + 1).padStart(2, "0");
@@ -380,14 +380,20 @@ function getPitchData(forceTenantId = null) {
         return window.__OPENPITCH_MEM_DBS[tenantId];
     }
 
-    // Đồng bộ saved-data.js CHỈ áp dụng cho web chính ("main"), không bao giờ trộn vào cửa hàng Admin khác
-    if (isMain && window.OPENPITCH_SAVED_DB) {
+    // Lấy bản snapshot từ saved-data.js cho đúng cửa hàng (Web chính hoặc cửa hàng Admin)
+    const savedSnapshot = isMain
+        ? (window.OPENPITCH_SAVED_DB || null)
+        : ((window.OPENPITCH_SAVED_TENANT_DBS && window.OPENPITCH_SAVED_TENANT_DBS[tenantId]) || null);
+
+    if (savedSnapshot && window.OPENPITCH_SAVED_VERSION) {
         let needSync = true;
+        const verKey = isMain ? "OPENPITCH_DB_VERSION" : `OPENPITCH_DB_VERSION_${tenantId}`;
         try {
             const isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
-            const hasLocalDb = Boolean(localStorage.getItem("OPENPITCH_DB"));
-            const savedVer = localStorage.getItem("OPENPITCH_DB_VERSION");
+            const hasLocalDb = Boolean(localStorage.getItem(storageKey));
+            const savedVer = localStorage.getItem(verKey);
             if (isLocal && hasLocalDb) {
+                // Trên VS Code Live Server: luôn ưu tiên dữ liệu bạn đang làm trong localStorage
                 needSync = false;
             } else {
                 needSync = savedVer !== window.OPENPITCH_SAVED_VERSION;
@@ -395,12 +401,14 @@ function getPitchData(forceTenantId = null) {
         } catch (e) {}
 
         if (needSync) {
-            const cloned = JSON.parse(JSON.stringify(window.OPENPITCH_SAVED_DB));
+            const cloned = JSON.parse(JSON.stringify(savedSnapshot));
             window.__OPENPITCH_MEM_DBS[tenantId] = cloned;
             try {
                 localStorage.setItem(storageKey, JSON.stringify(cloned));
-                localStorage.setItem("OPENPITCH_DB_VERSION", window.OPENPITCH_SAVED_VERSION || "");
-            } catch (err) {}
+                localStorage.setItem(verKey, window.OPENPITCH_SAVED_VERSION);
+            } catch (err) {
+                // Safari điện thoại đầy 5MB -> vẫn chạy mượt từ RAM
+            }
             return cloned;
         }
     }
@@ -410,12 +418,11 @@ function getPitchData(forceTenantId = null) {
 
     if (!raw) {
         let fresh;
-        if (isMain) {
-            fresh = window.OPENPITCH_SAVED_DB
-                ? JSON.parse(JSON.stringify(window.OPENPITCH_SAVED_DB))
-                : buildDefaultData();
+        if (savedSnapshot) {
+            fresh = JSON.parse(JSON.stringify(savedSnapshot));
+        } else if (isMain) {
+            fresh = buildDefaultData();
         } else {
-            // Cửa hàng của Admin mới: luôn khởi tạo DỮ LIỆU TRỐNG ĐỘC LẬP
             fresh = buildEmptyTenantData(getActiveStoreNameSafe(tenantId));
         }
         window.__OPENPITCH_MEM_DBS[tenantId] = fresh;
@@ -525,13 +532,15 @@ function getTenantQuickStats(tenantId) {
     let raw = null;
     try { raw = localStorage.getItem(storageKey); } catch (e) {}
     if (!raw) {
-        if (tenantId === "main") {
-            const mainDb = getPitchData("main");
+        const snap = tenantId === "main"
+            ? getPitchData("main")
+            : ((window.OPENPITCH_SAVED_TENANT_DBS && window.OPENPITCH_SAVED_TENANT_DBS[tenantId]) || null);
+        if (snap) {
             return {
-                pitches: (mainDb.pitches || []).length,
-                products: (mainDb.products || []).length,
-                bookings: (mainDb.bookings || []).length,
-                orders: (mainDb.posOrders || []).length
+                pitches: (snap.pitches || []).length,
+                products: (snap.products || []).length,
+                bookings: (snap.bookings || []).length,
+                orders: (snap.posOrders || []).length
             };
         }
         return { pitches: 0, products: 0, bookings: 0, orders: 0 };

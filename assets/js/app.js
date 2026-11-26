@@ -75,6 +75,33 @@ function getRoleLabel(roleCode) {
 }
 
 function getSystemAccounts() {
+    if (window.__OPENPITCH_MEM_ACCOUNTS) return window.__OPENPITCH_MEM_ACCOUNTS;
+
+    // Đồng bộ danh sách tài khoản & phân quyền từ saved-data.js khi mở trên GitHub Pages / thiết bị khác
+    if (Array.isArray(window.OPENPITCH_SAVED_ACCOUNTS) && window.OPENPITCH_SAVED_ACCOUNTS.length > 0 && window.OPENPITCH_SAVED_VERSION) {
+        let needAccSync = true;
+        try {
+            const isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+            const hasLocalAcc = Boolean(localStorage.getItem("OPENPITCH_ACCOUNTS"));
+            const syncedVer = localStorage.getItem("OPENPITCH_ACCOUNTS_VERSION");
+            if (isLocal && hasLocalAcc) {
+                needAccSync = false;
+            } else {
+                needAccSync = syncedVer !== window.OPENPITCH_SAVED_VERSION;
+            }
+        } catch (e) {}
+
+        if (needAccSync) {
+            const clonedAccs = JSON.parse(JSON.stringify(window.OPENPITCH_SAVED_ACCOUNTS));
+            window.__OPENPITCH_MEM_ACCOUNTS = clonedAccs;
+            try {
+                localStorage.setItem("OPENPITCH_ACCOUNTS", JSON.stringify(clonedAccs));
+                localStorage.setItem("OPENPITCH_ACCOUNTS_VERSION", window.OPENPITCH_SAVED_VERSION);
+            } catch (e) {}
+            return clonedAccs;
+        }
+    }
+
     let list = null;
     try {
         const raw = localStorage.getItem("OPENPITCH_ACCOUNTS");
@@ -150,6 +177,7 @@ function getSystemAccounts() {
 }
 
 function saveSystemAccounts(list) {
+    window.__OPENPITCH_MEM_ACCOUNTS = list;
     try {
         localStorage.setItem("OPENPITCH_ACCOUNTS", JSON.stringify(list));
     } catch (e) {}
@@ -660,6 +688,23 @@ function applyRoleBasedSidebar() {
         }).join("");
     }
 
+    // Nút 1-chạm "Xuất dữ liệu Push GitHub" cho Chủ web (không cần mở F12 Console)
+    const oldExportBtn = sidebar.querySelector("#btnExportGithubData");
+    if (oldExportBtn) oldExportBtn.remove();
+    if (role === "super_admin") {
+        const exportBtn = document.createElement("button");
+        exportBtn.type = "button";
+        exportBtn.id = "btnExportGithubData";
+        exportBtn.className = "btn btn-outline-warning btn-sm w-100 mb-2";
+        exportBtn.title = "Tải file saved-data.js mới nhất (gồm Web chính + các Admin + Tài khoản) để chép vào assets/js/ trước khi git push";
+        exportBtn.innerHTML = `<i class="bi bi-cloud-arrow-up-fill me-1"></i> Xuất dữ liệu Push GitHub`;
+        exportBtn.setAttribute("onclick", "exportSavedDataForGithub()");
+        const userCard = sidebar.querySelector(".mt-auto");
+        if (userCard) {
+            userCard.insertAdjacentElement("beforebegin", exportBtn);
+        }
+    }
+
     // Cập nhật nút Đăng nhập / Đăng xuất ở chân Sidebar
     const existingAuthBtn = sidebar.querySelector("button[onclick*='logoutSystem'], button[onclick*='openQuickLoginModal'], a[href='login.html'].btn");
     if (existingAuthBtn) {
@@ -683,7 +728,7 @@ function applyRoleBasedSidebar() {
 
 function syncBrandLogo() {
     const brandLinks = document.querySelectorAll(".sidebar > a");
-    const customLogo = localStorage.getItem("OPENPITCH_CUSTOM_LOGO");
+    const customLogo = localStorage.getItem("OPENPITCH_CUSTOM_LOGO") || window.OPENPITCH_SAVED_LOGO || null;
 
     brandLinks.forEach(link => {
         const iconBox = link.querySelector(".bg-success, .brand-logo-box");
@@ -996,4 +1041,60 @@ function initUniversalHorizontalScroll() {
 
     const observer = new MutationObserver(scheduleRefresh);
     observer.observe(document.body, { childList: true, subtree: true });
+}
+
+// =========================================================
+// XUẤT TOÀN BỘ DỮ LIỆU (WEB CHÍNH + TẤT CẢ ADMIN + TÀI KHOẢN + LOGO)
+// THÀNH FILE saved-data.js CHỈ BẰNG 1 CLICK ĐỂ PUSH LÊN GITHUB
+// =========================================================
+function exportSavedDataForGithub() {
+    if (!isSuperAdmin()) {
+        showToast("Chỉ Chủ web mới có quyền xuất gói dữ liệu hệ thống!", "warning");
+        return;
+    }
+
+    const version = new Date().toISOString();
+    const accounts = getSystemAccounts();
+    const mainDb = typeof getPitchData === "function"
+        ? getPitchData("main")
+        : JSON.parse(localStorage.getItem("OPENPITCH_DB") || "null");
+
+    const tenantDbs = {};
+    accounts.forEach(acc => {
+        if (acc.roleCode === "admin" && acc.tenantId && acc.tenantId !== "main") {
+            const key = `OPENPITCH_DB_${acc.tenantId}`;
+            let raw = null;
+            try { raw = localStorage.getItem(key); } catch (e) {}
+            if (raw) {
+                try { tenantDbs[acc.tenantId] = JSON.parse(raw); } catch (e) {}
+            } else if (typeof getPitchData === "function") {
+                tenantDbs[acc.tenantId] = getPitchData(acc.tenantId);
+            }
+        }
+    });
+
+    const customLogo = localStorage.getItem("OPENPITCH_CUSTOM_LOGO") || window.OPENPITCH_SAVED_LOGO || "";
+
+    const lines = [
+        "// File dữ liệu đồng bộ tự động từ openPitch (VS Code -> GitHub Pages)",
+        `window.OPENPITCH_SAVED_VERSION = ${JSON.stringify(version)};`,
+        `window.OPENPITCH_SAVED_DB = ${JSON.stringify(mainDb)};`,
+        `window.OPENPITCH_SAVED_TENANT_DBS = ${JSON.stringify(tenantDbs)};`,
+        `window.OPENPITCH_SAVED_ACCOUNTS = ${JSON.stringify(accounts)};`,
+        `window.OPENPITCH_SAVED_LOGO = ${JSON.stringify(customLogo)};`
+    ];
+
+    const blob = new Blob([lines.join("\n") + "\n"], { type: "application/javascript;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "saved-data.js";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+        URL.revokeObjectURL(a.href);
+        a.remove();
+    }, 500);
+
+    const storeCount = 1 + Object.keys(tenantDbs).length;
+    showToast(`Đã tải saved-data.js (${storeCount} cửa hàng & ${accounts.length} tài khoản)! Chép đè vào assets/js/saved-data.js rồi git push.`, "success");
 }
