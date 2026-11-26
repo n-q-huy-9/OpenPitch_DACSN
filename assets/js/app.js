@@ -21,11 +21,11 @@ const OPENPITCH_DEFAULT_SVG_LOGO = `
 </svg>`;
 
 document.addEventListener("DOMContentLoaded", () => {
-    syncBrandLogo();
-    syncSidebarUserSession();
-    syncSidebarAlertBadge();
-    initResponsiveSidebar();
-    initUniversalHorizontalScroll();
+    try { initResponsiveSidebar(); } catch (e) {}
+    try { syncBrandLogo(); } catch (e) {}
+    try { syncSidebarUserSession(); } catch (e) {}
+    try { syncSidebarAlertBadge(); } catch (e) {}
+    try { initUniversalHorizontalScroll(); } catch (e) {}
 });
 
 // 1. Tự động nâng cấp Logo openPitch đồng bộ trên tất cả các trang

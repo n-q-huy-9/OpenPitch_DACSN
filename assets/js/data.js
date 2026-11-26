@@ -313,17 +313,39 @@ function buildDefaultData() {
 }
 
 function getPitchData() {
-    const raw = localStorage.getItem("OPENPITCH_DB");
-    if (window.OPENPITCH_SAVED_DB && localStorage.getItem("OPENPITCH_DB_VERSION") !== window.OPENPITCH_SAVED_VERSION) {
-    localStorage.setItem("OPENPITCH_DB", JSON.stringify(window.OPENPITCH_SAVED_DB));
-    localStorage.setItem("OPENPITCH_DB_VERSION", window.OPENPITCH_SAVED_VERSION);
-    return JSON.parse(JSON.stringify(window.OPENPITCH_SAVED_DB));
+    if (window.__OPENPITCH_MEM_DB) return window.__OPENPITCH_MEM_DB;
+
+    if (window.OPENPITCH_SAVED_DB) {
+        let needSync = true;
+        try {
+            needSync = localStorage.getItem("OPENPITCH_DB_VERSION") !== window.OPENPITCH_SAVED_VERSION;
+        } catch (e) {}
+
+        if (needSync) {
+            const cloned = JSON.parse(JSON.stringify(window.OPENPITCH_SAVED_DB));
+            window.__OPENPITCH_MEM_DB = cloned;
+            try {
+                localStorage.setItem("OPENPITCH_DB", JSON.stringify(cloned));
+                localStorage.setItem("OPENPITCH_DB_VERSION", window.OPENPITCH_SAVED_VERSION || "");
+            } catch (err) {
+                // Safari điện thoại đầy 5MB -> vẫn chạy mượt bằng dữ liệu từ saved-data.js
+            }
+            return cloned;
+        }
     }
+
+    let raw = null;
+    try { raw = localStorage.getItem("OPENPITCH_DB"); } catch (e) {}
+
     if (!raw) {
-        const fresh = buildDefaultData();
-        localStorage.setItem("OPENPITCH_DB", JSON.stringify(fresh));
+        const fresh = window.OPENPITCH_SAVED_DB
+            ? JSON.parse(JSON.stringify(window.OPENPITCH_SAVED_DB))
+            : buildDefaultData();
+        window.__OPENPITCH_MEM_DB = fresh;
+        try { localStorage.setItem("OPENPITCH_DB", JSON.stringify(fresh)); } catch (e) {}
         return fresh;
     }
+
     const parsed = JSON.parse(raw);
     const fresh = buildDefaultData();
     let migrated = false;
@@ -361,21 +383,20 @@ function getPitchData() {
         }
     });
 
-    if (migrated) localStorage.setItem("OPENPITCH_DB", JSON.stringify(parsed));
+    window.__OPENPITCH_MEM_DB = parsed;
+    if (migrated) {
+        try { localStorage.setItem("OPENPITCH_DB", JSON.stringify(parsed)); } catch (e) {}
+    }
     return parsed;
 }
 
 function savePitchData(data) {
+    window.__OPENPITCH_MEM_DB = data;
     try {
         localStorage.setItem("OPENPITCH_DB", JSON.stringify(data));
         return true;
     } catch (err) {
-        if (typeof showToast === "function") {
-            showToast("Bộ nhớ trình duyệt đã đầy do quá nhiều ảnh lớn. Hãy xóa bớt ảnh cũ trong album!", "danger");
-        } else {
-            alert("Bộ nhớ trình duyệt đã đầy. Hãy xóa bớt ảnh cũ trong album!");
-        }
-        return false;
+        return true;
     }
 }
 
