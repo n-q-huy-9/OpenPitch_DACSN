@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -232,7 +233,7 @@
                 <h5 class="mb-0 fw-bold">Quản Lý Giải Đấu Phong Trào</h5>
                 <small class="text-muted">Tổ chức giải đấu, bốc thăm chia bảng, sơ đồ C1 &amp; giải thưởng cá nhân</small>
             </div>
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2" id="tourAdminHeaderBtns">
                 <button class="btn btn-outline-success btn-sm px-3" data-bs-toggle="modal" data-bs-target="#addTeamModal">
                     <i class="bi bi-people-fill me-1"></i> + Thêm đội tham gia
                 </button>
@@ -273,7 +274,7 @@
 
             <!-- THANH TAB CHUYỂN CHẾ ĐỘ -->
             <ul class="nav nav-pills mb-4 gap-2" id="tourTabs" role="tablist">
-                <li class="nav-item">
+                <li class="nav-item" id="tourTabSetupNav">
                     <button class="nav-link active fw-semibold" data-bs-toggle="pill" data-bs-target="#tab-setup">
                         <i class="bi bi-shuffle me-1"></i> 1. Đội bóng &amp; Bốc thăm chia bảng
                     </button>
@@ -396,7 +397,7 @@
                     <div class="ucl-arena">
                         <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 px-2">
                             <div class="ucl-header-title fs-5" id="uclBannerTitle">ROAD TO FINAL • OPENPITCH CUP</div>
-                            <button class="btn btn-outline-info btn-sm" onclick="generateKnockoutFromAllTeams(true)">
+                            <button class="btn btn-outline-info btn-sm" id="btnRedrawC1" onclick="generateKnockoutFromAllTeams(true)">
                                 <i class="bi bi-shuffle me-1"></i> Bốc thăm lại nhánh C1
                             </button>
                         </div>
@@ -450,7 +451,7 @@
                         <div class="col-lg-4">
                             <div class="card card-custom p-3 h-100">
                                 <h6 class="fw-bold text-warning-emphasis mb-3"><i class="bi bi-bullseye me-1"></i> Ghi bàn nhiều nhất</h6>
-                                <form class="row g-2 mb-3" onsubmit="addAwardEntry(event, 'scorers')">
+                                <form class="row g-2 mb-3 tour-admin-only" onsubmit="addAwardEntry(event, 'scorers')">
                                     <div class="col-6"><input type="text" id="scorerName" class="form-control form-control-sm" placeholder="Tên cầu thủ" required></div>
                                     <div class="col-6"><select id="scorerTeam" class="form-select form-select-sm team-dropdown"></select></div>
                                     <div class="col-7"><input type="number" id="scorerVal" class="form-control form-control-sm" placeholder="Số bàn thắng" min="1" value="1" required></div>
@@ -463,7 +464,7 @@
                         <div class="col-lg-4">
                             <div class="card card-custom p-3 h-100">
                                 <h6 class="fw-bold text-info-emphasis mb-3"><i class="bi bi-send-fill me-1"></i> Kiến tạo nhiều nhất</h6>
-                                <form class="row g-2 mb-3" onsubmit="addAwardEntry(event, 'assists')">
+                                <form class="row g-2 mb-3 tour-admin-only" onsubmit="addAwardEntry(event, 'assists')">
                                     <div class="col-6"><input type="text" id="assistName" class="form-control form-control-sm" placeholder="Tên cầu thủ" required></div>
                                     <div class="col-6"><select id="assistTeam" class="form-select form-select-sm team-dropdown"></select></div>
                                     <div class="col-7"><input type="number" id="assistVal" class="form-control form-control-sm" placeholder="Số kiến tạo" min="1" value="1" required></div>
@@ -476,7 +477,7 @@
                         <div class="col-lg-4">
                             <div class="card card-custom p-3 h-100">
                                 <h6 class="fw-bold text-success mb-3"><i class="bi bi-hand-index-fill me-1"></i> Thủ môn xuất sắc nhất</h6>
-                                <form class="row g-2 mb-3" onsubmit="addAwardEntry(event, 'goalkeepers')">
+                                <form class="row g-2 mb-3 tour-admin-only" onsubmit="addAwardEntry(event, 'goalkeepers')">
                                     <div class="col-6"><input type="text" id="gkName" class="form-control form-control-sm" placeholder="Tên thủ môn" required></div>
                                     <div class="col-6"><select id="gkTeam" class="form-select form-select-sm team-dropdown"></select></div>
                                     <div class="col-4"><input type="number" id="gkClean" class="form-control form-control-sm" placeholder="Sạch lưới" min="0" value="1" title="Số trận giữ sạch lưới" required></div>
@@ -750,6 +751,7 @@
             document.getElementById('rulesModalPrize').innerText = t.prize;
             document.getElementById('customRulesView').innerText = t.customRules || DEFAULT_CUSTOM_RULES;
             document.getElementById('customRulesTextarea').value = t.customRules || DEFAULT_CUSTOM_RULES;
+            document.getElementById('btnToggleEditRules').classList.toggle('d-none', !canManage('tournaments'));
             toggleEditCustomRules(false);
             rulesModal.show();
         }
@@ -1084,7 +1086,7 @@
                 return;
             }
 
-            btnAdv.classList.remove('d-none');
+            btnAdv.classList.toggle('d-none', !canManage('tournaments'));
 
             const groupNames = t.format === 'round_robin'
                 ? ["Chung"]
@@ -1156,12 +1158,12 @@
                         </span>
                         <span class="fw-bold small text-truncate text-end" style="max-width: 38%;">${getTeamName(db, m.teamBId)}</span>
                     </div>
-                    <div class="text-end mt-2">
+                    ${canManage('tournaments') ? `<div class="text-end mt-2">
                         <button class="btn btn-outline-success btn-sm py-0 px-2" style="font-size: 0.72rem;"
                             onclick="openScoreModal('group', '${m.id}')">
                             <i class="bi bi-pencil-square me-1"></i>Cập nhật tỷ số
                         </button>
-                    </div>
+                    </div>` : ''}
                 </div>
             `).join('');
         }
@@ -1302,6 +1304,7 @@
         }
 
         function openScoreModal(type, matchId, rIdx = 0, mIdx = 0) {
+            if (!canManage("tournaments")) return;
             const db = getPitchData();
             let m = null;
 
@@ -1429,7 +1432,7 @@
                     <div><strong>#${i + 1} ${x.player}</strong> <span class="text-muted">(${x.team})</span></div>
                     <div class="d-flex align-items-center gap-2">
                         <span class="badge bg-warning text-dark">${x.value} bàn</span>
-                        <button class="btn btn-link text-danger p-0" onclick="deleteAwardEntry('scorers', '${x.id}')"><i class="bi bi-x-circle"></i></button>
+                        ${canManage('tournaments') ? `<button class="btn btn-link text-danger p-0" onclick="deleteAwardEntry('scorers', '${x.id}')"><i class="bi bi-x-circle"></i></button>` : ''}
                     </div>
                 </div>
             `).join('') || `<div class="text-muted small text-center py-3">Chưa có dữ liệu</div>`;
@@ -1439,7 +1442,7 @@
                     <div><strong>#${i + 1} ${x.player}</strong> <span class="text-muted">(${x.team})</span></div>
                     <div class="d-flex align-items-center gap-2">
                         <span class="badge bg-info text-white">${x.value} KT</span>
-                        <button class="btn btn-link text-danger p-0" onclick="deleteAwardEntry('assists', '${x.id}')"><i class="bi bi-x-circle"></i></button>
+                        ${canManage('tournaments') ? `<button class="btn btn-link text-danger p-0" onclick="deleteAwardEntry('assists', '${x.id}')"><i class="bi bi-x-circle"></i></button>` : ''}
                     </div>
                 </div>
             `).join('') || `<div class="text-muted small text-center py-3">Chưa có dữ liệu</div>`;
@@ -1452,7 +1455,7 @@
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <span class="badge bg-success">${x.cleanSheets} sạch lưới</span>
-                        <button class="btn btn-link text-danger p-0" onclick="deleteAwardEntry('goalkeepers', '${x.id}')"><i class="bi bi-x-circle"></i></button>
+                        ${canManage('tournaments') ? `<button class="btn btn-link text-danger p-0" onclick="deleteAwardEntry('goalkeepers', '${x.id}')"><i class="bi bi-x-circle"></i></button>` : ''}
                     </div>
                 </div>
             `).join('') || `<div class="text-muted small text-center py-3">Chưa có dữ liệu</div>`;
@@ -1571,7 +1574,22 @@
             renderAll();
         }
 
-        renderAll();
+        function applyTournamentRoleUI() {
+            const isMgr = canManage('tournaments');
+            document.getElementById('tourAdminHeaderBtns').classList.toggle('d-none', !isMgr);
+            document.getElementById('tourTabSetupNav').classList.toggle('d-none', !isMgr);
+            document.getElementById('btnRedrawC1').classList.toggle('d-none', !isMgr);
+            document.querySelectorAll('.tour-admin-only').forEach(el => el.classList.toggle('d-none', !isMgr));
+
+            if (!isMgr) {
+                const groupsBtn = document.querySelector('[data-bs-target="#tab-groups"]');
+                if (groupsBtn) bootstrap.Tab.getOrCreateInstance(groupsBtn).show();
+            }
+            renderAll();
+        }
+
+        window.onAuthStateChanged = function() { applyTournamentRoleUI(); };
+        applyTournamentRoleUI();
     </script>
 </body>
 </html>

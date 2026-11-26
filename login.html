@@ -82,51 +82,51 @@
         <!-- CỘT TRÁI: BANNER HỆ THỐNG -->
         <div class="col-lg-6 d-none d-lg-flex flex-column justify-content-between p-5 login-banner">
             <div class="d-flex align-items-center gap-2">
-                <div class="brand-logo-box login-brand-logo" style="width: 48px; height: 48px;"></div>
+                <div class="brand-logo-box login-brand-logo" style="width: 50px; height: 50px;"></div>
                 <div>
                     <h4 class="mb-0 fw-bold">openPitch</h4>
-                    <small class="opacity-75" style="font-size: 0.78rem;">Quản lý sân bóng phong trào</small>
+                    <small class="opacity-75" style="font-size: 0.78rem;">Quản lý sân bóng &amp; Cửa hàng thể thao</small>
                 </div>
             </div>
 
             <div class="my-auto pe-3">
                 <span class="badge bg-white text-success mb-3 px-3 py-2 fw-semibold">
-                    <i class="bi bi-stars me-1"></i> Hệ thống Quản trị Cụm Sân Thông Minh
+                    <i class="bi bi-stars me-1"></i> Nền tảng Đặt sân, Mua sắm &amp; Quản trị Đa vai trò
                 </span>
                 <h1 class="fw-bold display-6 mb-3">
-                    Vận hành sân bóng &amp; kiểm soát dòng tiền thực tế trên một nền tảng.
+                    Đặt sân nhanh chóng, mua sắm tiện lợi và quản trị toàn diện trên một hệ thống.
                 </h1>
                 <p class="opacity-75 mb-4">
-                    Đồng bộ tự động từ lịch đặt sân, bán hàng POS, tồn kho cho đến sổ quỹ tài chính và tổ chức giải đấu.
+                    Hỗ trợ phân quyền 3 cấp: Chủ web (Super Admin), Admin (Chủ cửa hàng) và Khách hàng mua sắm – đặt sân trực tuyến.
                 </p>
 
                 <div class="row g-2 small">
                     <div class="col-6">
                         <div class="feature-pill">
-                            <i class="bi bi-wallet2 text-warning me-1"></i>
-                            <strong>Doanh thu &amp; Sổ quỹ</strong>
-                            <div class="opacity-75 mt-1" style="font-size: 0.76rem;">Tự tính lợi nhuận gộp &amp; dòng tiền Thu − Chi</div>
+                            <i class="bi bi-shield-lock-fill text-warning me-1"></i>
+                            <strong>Phân quyền 3 cấp (RBAC)</strong>
+                            <div class="opacity-75 mt-1" style="font-size: 0.76rem;">Chủ web tự cấp quyền linh hoạt cho các Admin</div>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="feature-pill">
                             <i class="bi bi-calendar2-check text-info me-1"></i>
-                            <strong>Lịch sân theo ngày</strong>
-                            <div class="opacity-75 mt-1" style="font-size: 0.76rem;">Đặt khung 1 giờ hoặc giờ lẻ, tự chống trùng</div>
+                            <strong>Xem &amp; Đặt sân trực tuyến</strong>
+                            <div class="opacity-75 mt-1" style="font-size: 0.76rem;">Xem lịch trống tự do, đặt khung giờ linh hoạt</div>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="feature-pill">
-                            <i class="bi bi-cup-straw text-light me-1"></i>
-                            <strong>POS &amp; Kho hàng</strong>
-                            <div class="opacity-75 mt-1" style="font-size: 0.76rem;">Bán nước trừ kho tự động, cảnh báo sắp hết</div>
+                            <i class="bi bi-bag-heart-fill text-light me-1"></i>
+                            <strong>Cửa hàng &amp; Đánh giá sao</strong>
+                            <div class="opacity-75 mt-1" style="font-size: 0.76rem;">Album ảnh nhiều góc, chọn size &amp; review sau mua</div>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="feature-pill">
-                            <i class="bi bi-trophy text-warning me-1"></i>
-                            <strong>Giải đấu Sơ đồ C1</strong>
-                            <div class="opacity-75 mt-1" style="font-size: 0.76rem;">Xếp hạng FIFA, bốc thăm BYE &amp; nhánh C1</div>
+                            <i class="bi bi-wallet2 text-warning me-1"></i>
+                            <strong>Sổ quỹ &amp; Kho FEFO</strong>
+                            <div class="opacity-75 mt-1" style="font-size: 0.76rem;">Đồng bộ doanh thu, lợi nhuận &amp; cảnh báo HSD</div>
                         </div>
                     </div>
                 </div>
@@ -140,23 +140,22 @@
         <!-- CỘT PHẢI: FORM ĐĂNG NHẬP -->
         <div class="col-lg-6 d-flex align-items-center justify-content-center p-4 login-panel">
             <div class="login-card p-4 p-md-5">
-                <!-- Nút (!) xem nhanh tài khoản truy cập -->
+                <!-- Nút (!) xem nhanh 3 tài khoản Chủ web / Admin / Khách hàng -->
                 <button type="button" class="btn-info-circle" data-bs-toggle="modal" data-bs-target="#accountsInfoModal" title="Danh sách tài khoản hệ thống">
                     !
                 </button>
 
                 <!-- Logo hiện trên mobile -->
                 <div class="d-flex d-lg-none align-items-center gap-2 mb-3">
-                    <div class="brand-logo-box login-brand-logo" style="width: 40px; height: 40px;"></div>
+                    <div class="brand-logo-box login-brand-logo" style="width: 44px; height: 44px;"></div>
                     <h5 class="mb-0 fw-bold">openPitch</h5>
                 </div>
 
                 <div class="mb-4 pe-4">
-                    <h3 class="fw-bold mb-1">Đăng nhập hệ thống</h3>
-                    <p class="text-muted small mb-0">Vui lòng nhập tài khoản quản trị cụm sân của bạn</p>
+                    <h3 class="fw-bold mb-1">Đăng nhập openPitch</h3>
+                    <p class="text-muted small mb-0">Dành cho Chủ web, Admin cửa hàng &amp; Khách hàng</p>
                 </div>
 
-                <!-- Thông báo lỗi / thành công -->
                 <div id="loginAlert" class="alert d-none py-2 px-3 small mb-3"></div>
 
                 <form onsubmit="handleLogin(event)">
@@ -189,27 +188,31 @@
                         </a>
                     </div>
 
-                    <button type="submit" class="btn btn-pitch w-100 py-2 fw-semibold mb-3">
-                        <i class="bi bi-box-arrow-in-right me-1"></i> Đăng nhập vào Bảng điều khiển
+                    <button type="submit" class="btn btn-pitch w-100 py-2 fw-semibold mb-2">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Đăng nhập
+                    </button>
+
+                    <button type="button" onclick="continueAsGuest()" class="btn btn-outline-secondary w-100 py-2 small fw-semibold mb-3">
+                        <i class="bi bi-eye me-1"></i> Tiếp tục xem sân &amp; mua sắm (Không cần đăng nhập)
                     </button>
                 </form>
 
                 <div class="text-center small text-muted pt-2 border-top">
-                    Cần thêm tài khoản quản lý cho nhân viên?
+                    Bạn là khách hàng mới?
                     <a href="#" class="text-success fw-semibold text-decoration-none" data-bs-toggle="modal" data-bs-target="#registerModal">
-                        Tạo tài khoản
+                        Đăng ký tài khoản ngay
                     </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- MODAL (!) DANH SÁCH TÀI KHOẢN HỆ THỐNG -->
+    <!-- MODAL (!) DANH SÁCH TÀI KHOẢN THEO 3 VAI TRÒ -->
     <div class="modal fade" id="accountsInfoModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header bg-dark text-white">
-                    <h6 class="modal-title fw-bold"><i class="bi bi-shield-lock-fill text-success me-2"></i>Tài khoản truy cập hệ thống</h6>
+                    <h6 class="modal-title fw-bold"><i class="bi bi-shield-lock-fill text-success me-2"></i>Tài khoản truy cập (3 cấp quyền)</h6>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body small">
@@ -219,12 +222,12 @@
         </div>
     </div>
 
-    <!-- MODAL TẠO TÀI KHOẢN MỚI -->
+    <!-- MODAL ĐĂNG KÝ TÀI KHOẢN KHÁCH HÀNG -->
     <div class="modal fade" id="registerModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <form class="modal-content" onsubmit="handleRegister(event)">
                 <div class="modal-header">
-                    <h5 class="modal-title fw-bold">Tạo tài khoản quản lý mới</h5>
+                    <h5 class="modal-title fw-bold">Đăng ký tài khoản Khách hàng</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -233,26 +236,26 @@
                         <input type="text" id="regFullName" class="form-control" placeholder="VD: Nguyễn Văn An" required>
                     </div>
                     <div class="row g-2 mb-3">
-                        <div class="col-7">
-                            <label class="form-label small fw-semibold">Email / SĐT đăng nhập</label>
-                            <input type="text" id="regUsername" class="form-control" placeholder="nhanvien@openpitch.vn" required>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Email đăng nhập</label>
+                            <input type="text" id="regUsername" class="form-control" placeholder="an@gmail.com" required>
                         </div>
-                        <div class="col-5">
-                            <label class="form-label small fw-semibold">Vai trò</label>
-                            <select id="regRole" class="form-select">
-                                <option value="Nhân viên quầy">Nhân viên quầy</option>
-                                <option value="Chủ sân">Chủ sân</option>
-                            </select>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Số điện thoại</label>
+                            <input type="text" id="regPhone" class="form-control" placeholder="0905xxxxxx" required>
                         </div>
                     </div>
                     <div class="mb-2">
                         <label class="form-label small fw-semibold">Mật khẩu (tối thiểu 6 ký tự)</label>
                         <input type="password" id="regPassword" class="form-control" minlength="6" required>
                     </div>
+                    <div class="small text-muted mt-2">
+                        <i class="bi bi-info-circle me-1"></i> Tài khoản đăng ký mới có quyền Khách hàng (đặt sân, mua hàng, đánh giá sao). Tài khoản Admin được cấp bởi Chủ web.
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-pitch btn-sm px-3">Lưu tài khoản</button>
+                    <button type="submit" class="btn btn-pitch btn-sm px-3">Đăng ký ngay</button>
                 </div>
             </form>
         </div>
@@ -269,7 +272,7 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label small fw-semibold">Email / SĐT đã đăng ký</label>
-                        <input type="text" id="forgotUsername" class="form-control form-control-sm" placeholder="quochuy@openpitch.vn" required>
+                        <input type="text" id="forgotUsername" class="form-control form-control-sm" placeholder="khachhang@openpitch.vn" required>
                     </div>
                     <div class="mb-2">
                         <label class="form-label small fw-semibold">Mật khẩu mới</label>
@@ -285,37 +288,8 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/app.js"></script>
     <script>
-        const DEFAULT_ACCOUNTS = [
-            {
-                fullName: "Chủ sân Quốc Huy",
-                username: "quochuy@openpitch.vn",
-                phone: "0905123456",
-                password: "123456",
-                role: "Chủ sân"
-            },
-            {
-                fullName: "Nhân viên Trực sân",
-                username: "nhanvien@openpitch.vn",
-                phone: "0912345678",
-                password: "123456",
-                role: "Nhân viên quầy"
-            }
-        ];
-
-        function getAccounts() {
-            const raw = localStorage.getItem("OPENPITCH_ACCOUNTS");
-            if (!raw) {
-                localStorage.setItem("OPENPITCH_ACCOUNTS", JSON.stringify(DEFAULT_ACCOUNTS));
-                return DEFAULT_ACCOUNTS;
-            }
-            return JSON.parse(raw);
-        }
-
-        function saveAccounts(list) {
-            localStorage.setItem("OPENPITCH_ACCOUNTS", JSON.stringify(list));
-        }
-
         function showAlert(msg, type = "danger") {
             const box = document.getElementById("loginAlert");
             box.className = `alert alert-${type} py-2 px-3 small mb-3`;
@@ -335,20 +309,28 @@
         }
 
         function renderQuickAccounts() {
-            const list = getAccounts();
+            const list = getSystemAccounts();
             const container = document.getElementById("accountsQuickList");
-            container.innerHTML = list.map(acc => `
-                <div class="d-flex justify-content-between align-items-center p-2 mb-2 bg-light rounded-3 border">
-                    <div>
-                        <div class="fw-bold">${acc.fullName} <span class="badge bg-success-subtle text-success ms-1">${acc.role}</span></div>
-                        <div class="text-muted">TK: <code>${acc.username}</code> • MK: <code>${acc.password}</code></div>
+            container.innerHTML = list.map(acc => {
+                const badgeCls = acc.roleCode === "super_admin"
+                    ? "bg-warning text-dark"
+                    : (acc.roleCode === "admin" ? "bg-primary-subtle text-primary" : "bg-success-subtle text-success");
+                return `
+                    <div class="d-flex justify-content-between align-items-center p-2 mb-2 bg-light rounded-3 border">
+                        <div>
+                            <div class="fw-bold">
+                                ${acc.fullName}
+                                <span class="badge ${badgeCls} ms-1">${getRoleLabel(acc.roleCode)}</span>
+                            </div>
+                            <div class="text-muted">TK: <code>${acc.username}</code> • MK: <code>${acc.password}</code></div>
+                        </div>
+                        <button type="button" class="btn btn-outline-success btn-sm py-0 px-2"
+                            onclick="fillAccount('${acc.username}', '${acc.password}')">
+                            Điền nhanh
+                        </button>
                     </div>
-                    <button type="button" class="btn btn-outline-success btn-sm py-0 px-2"
-                        onclick="fillAccount('${acc.username}', '${acc.password}')">
-                        Điền nhanh
-                    </button>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function fillAccount(user, pwd) {
@@ -357,13 +339,18 @@
             bootstrap.Modal.getInstance(document.getElementById("accountsInfoModal")).hide();
         }
 
+        function continueAsGuest() {
+            localStorage.removeItem("OPENPITCH_SESSION");
+            window.location.href = "bookings.html";
+        }
+
         function handleLogin(e) {
             e.preventDefault();
             const inputUser = document.getElementById("loginUsername").value.trim().toLowerCase();
             const inputPwd = document.getElementById("loginPassword").value;
             const remember = document.getElementById("rememberMe").checked;
 
-            const accounts = getAccounts();
+            const accounts = getSystemAccounts();
             const found = accounts.find(a =>
                 (a.username.toLowerCase() === inputUser || (a.phone && a.phone === inputUser)) &&
                 a.password === inputPwd
@@ -373,14 +360,12 @@
                 showAlert("Sai tài khoản hoặc mật khẩu. Bấm biểu tượng (!) góc trên để kiểm tra tài khoản.", "danger");
                 return;
             }
+            if (found.active === false) {
+                showAlert("Tài khoản này đã bị Chủ web tạm khóa. Vui lòng liên hệ quản trị viên.", "danger");
+                return;
+            }
 
-            // Lưu phiên đăng nhập thật
-            localStorage.setItem("OPENPITCH_SESSION", JSON.stringify({
-                fullName: found.fullName,
-                username: found.username,
-                role: found.role,
-                loggedInAt: new Date().toLocaleString("vi-VN")
-            }));
+            setUserSession(found);
 
             if (remember) {
                 localStorage.setItem("OPENPITCH_REMEMBER_USER", found.username);
@@ -388,39 +373,52 @@
                 localStorage.removeItem("OPENPITCH_REMEMBER_USER");
             }
 
-            showAlert(`Chào mừng ${found.fullName}! Đang chuyển vào hệ thống...`, "success");
+            const targetUrl = getDefaultHomeForUser(found);
+            showAlert(`Chào mừng ${found.fullName} (${getRoleLabel(found.roleCode)})! Đang chuyển trang...`, "success");
             setTimeout(() => {
-                window.location.href = "index.html";
-            }, 450);
+                window.location.href = targetUrl;
+            }, 400);
         }
 
         function handleRegister(e) {
             e.preventDefault();
-            const accounts = getAccounts();
+            const accounts = getSystemAccounts();
             const fullName = document.getElementById("regFullName").value.trim();
             const username = document.getElementById("regUsername").value.trim().toLowerCase();
-            const role = document.getElementById("regRole").value;
+            const phone = document.getElementById("regPhone").value.trim();
             const password = document.getElementById("regPassword").value;
 
-            if (accounts.some(a => a.username.toLowerCase() === username)) {
-                alert("Email / Số điện thoại này đã tồn tại trong hệ thống!");
+            if (accounts.some(a => a.username.toLowerCase() === username || (phone && a.phone === phone))) {
+                alert("Email hoặc Số điện thoại này đã tồn tại trong hệ thống!");
                 return;
             }
 
-            accounts.push({ fullName, username, phone: "", password, role });
-            saveAccounts(accounts);
+            const newAcc = {
+                id: "ACC_" + Date.now().toString().slice(-5),
+                fullName,
+                username,
+                phone,
+                password,
+                roleCode: "customer",
+                role: getRoleLabel("customer"),
+                active: true,
+                permissions: {},
+                createdAt: new Date().toLocaleDateString("vi-VN")
+            };
+            accounts.push(newAcc);
+            saveSystemAccounts(accounts);
             renderQuickAccounts();
 
             document.getElementById("loginUsername").value = username;
             document.getElementById("loginPassword").value = password;
             bootstrap.Modal.getInstance(document.getElementById("registerModal")).hide();
             e.target.reset();
-            showAlert("Tạo tài khoản thành công! Bạn có thể bấm Đăng nhập ngay.", "success");
+            showAlert("Đăng ký tài khoản Khách hàng thành công! Bạn có thể bấm Đăng nhập ngay.", "success");
         }
 
         function handleResetPassword(e) {
             e.preventDefault();
-            const accounts = getAccounts();
+            const accounts = getSystemAccounts();
             const target = document.getElementById("forgotUsername").value.trim().toLowerCase();
             const newPwd = document.getElementById("forgotNewPwd").value;
 
@@ -431,7 +429,7 @@
             }
 
             acc.password = newPwd;
-            saveAccounts(accounts);
+            saveSystemAccounts(accounts);
             renderQuickAccounts();
 
             bootstrap.Modal.getInstance(document.getElementById("forgotModal")).hide();
@@ -439,33 +437,15 @@
             showAlert("Đã cập nhật mật khẩu mới thành công!", "success");
         }
 
-        // Tự động điền lại email đã nhớ (nếu có)
-        const remembered = localStorage.getItem("OPENPITCH_REMEMBER_USER");
-        if (remembered) {
-            document.getElementById("loginUsername").value = remembered;
-        }
-        renderQuickAccounts();
-
-        // Hiển thị logo openPitch mới (tự đồng bộ từ logo đã tải lên hoặc assets/img/logo.jpg / SVG sân bóng)
+        // Hiển thị logo openPitch trên trang login
         (function initLoginLogo() {
-            const svgFallback = `
-                <svg viewBox="0 0 64 64" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-                  <defs><linearGradient id="opBgL" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#22C55E"/><stop offset="100%" stop-color="#047857"/></linearGradient></defs>
-                  <rect width="64" height="64" rx="14" fill="url(#opBgL)"/>
-                  <rect x="9" y="13" width="46" height="38" rx="5" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-opacity="0.92"/>
-                  <line x1="32" y1="13" x2="32" y2="51" stroke="#FFFFFF" stroke-width="2.2" stroke-opacity="0.85"/>
-                  <path d="M9 24 H16 V40 H9" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-opacity="0.85"/>
-                  <path d="M55 24 H48 V40 H55" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-opacity="0.85"/>
-                  <circle cx="32" cy="32" r="9.5" fill="#064E3B" stroke="#FFFFFF" stroke-width="2.5"/>
-                  <polygon points="32,26 37,29.6 35.1,35.4 28.9,35.4 27,29.6" fill="#FFFFFF"/>
-                </svg>`;
             const customLogo = localStorage.getItem("OPENPITCH_CUSTOM_LOGO");
             document.querySelectorAll(".login-brand-logo").forEach(box => {
                 const img = document.createElement("img");
                 img.alt = "openPitch Logo";
                 if (customLogo) {
                     img.src = customLogo;
-                    img.onerror = () => { box.innerHTML = svgFallback; };
+                    img.onerror = () => { box.innerHTML = OPENPITCH_DEFAULT_SVG_LOGO; };
                 } else {
                     img.src = "assets/img/logo.jpg";
                     img.dataset.triedPng = "0";
@@ -474,13 +454,24 @@
                             this.dataset.triedPng = "1";
                             this.src = "assets/img/logo.png";
                         } else {
-                            box.innerHTML = svgFallback;
+                            box.innerHTML = OPENPITCH_DEFAULT_SVG_LOGO;
                         }
                     };
                 }
                 box.appendChild(img);
             });
         })();
+
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("locked") === "1") {
+            showAlert("Tài khoản của bạn đã bị Chủ web tạm khóa.", "danger");
+        }
+
+        const remembered = localStorage.getItem("OPENPITCH_REMEMBER_USER");
+        if (remembered) {
+            document.getElementById("loginUsername").value = remembered;
+        }
+        renderQuickAccounts();
     </script>
 </body>
 </html>

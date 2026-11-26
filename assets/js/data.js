@@ -312,55 +312,168 @@ function buildDefaultData() {
     };
 }
 
-function getPitchData() {
-    if (window.__OPENPITCH_MEM_DB) return window.__OPENPITCH_MEM_DB;
+// Khởi tạo dữ liệu TRỐNG HOÀN TOÀN cho mỗi cửa hàng / cụm sân Admin mới tạo
+// (Đầy đủ tính năng: Lịch sân, Sân bóng, POS, Kho, Doanh thu, Giải đấu — nhưng 0 dữ liệu)
+function buildEmptyTenantData(storeName = "Cửa hàng mới") {
+    const template = buildDefaultData();
+    return {
+        openingCashFund: 0,
+        categories: ["Nước uống", "Đồ ăn", "Phụ kiện"],
+        suppliers: [],
+        promotions: [],
+        pitches: [],
+        timeSlots: template.timeSlots,
+        bookings: [],
+        products: [],
+        posOrders: [],
+        inventoryLogs: [],
+        tournaments: {
+            name: `Giải Bóng Đá ${storeName}`,
+            prize: "Chưa cấu hình giải thưởng",
+            location: storeName,
+            status: "Đang đăng ký",
+            format: "round_robin",
+            groupCount: 2,
+            teams: [],
+            groupMatches: [],
+            bracket: { rounds: [], championId: null },
+            awards: { scorers: [], assists: [], goalkeepers: [] }
+        }
+    };
+}
 
-    if (window.OPENPITCH_SAVED_DB) {
+// Xác định mã cửa hàng (tenantId) đang hoạt động
+function resolveActiveTenantId() {
+    if (typeof getActiveTenantId === "function") {
+        return getActiveTenantId();
+    }
+    try {
+        const sess = JSON.parse(localStorage.getItem("OPENPITCH_SESSION") || "null");
+        if (sess && sess.roleCode === "admin" && sess.tenantId) {
+            return sess.tenantId;
+        }
+        return localStorage.getItem("OPENPITCH_SELECTED_TENANT") || "main";
+    } catch (e) {
+        return "main";
+    }
+}
+
+function getTenantStorageKey(tenantId) {
+    return (!tenantId || tenantId === "main") ? "OPENPITCH_DB" : `OPENPITCH_DB_${tenantId}`;
+}
+
+function getActiveStoreNameSafe(tenantId) {
+    if (typeof getActiveStoreInfo === "function") {
+        const info = getActiveStoreInfo(tenantId);
+        if (info && info.name) return info.name;
+    }
+    return tenantId === "main" ? "openPitch (Hệ thống chính)" : "Cửa hàng mới";
+}
+
+function getPitchData(forceTenantId = null) {
+    const tenantId = forceTenantId || resolveActiveTenantId();
+    const isMain = tenantId === "main";
+    const storageKey = getTenantStorageKey(tenantId);
+
+    if (!window.__OPENPITCH_MEM_DBS) window.__OPENPITCH_MEM_DBS = {};
+    if (window.__OPENPITCH_MEM_DBS[tenantId]) {
+        return window.__OPENPITCH_MEM_DBS[tenantId];
+    }
+
+    // Đồng bộ saved-data.js CHỈ áp dụng cho web chính ("main"), không bao giờ trộn vào cửa hàng Admin khác
+    if (isMain && window.OPENPITCH_SAVED_DB) {
         let needSync = true;
         try {
-            needSync = localStorage.getItem("OPENPITCH_DB_VERSION") !== window.OPENPITCH_SAVED_VERSION;
+            const isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+            const hasLocalDb = Boolean(localStorage.getItem("OPENPITCH_DB"));
+            const savedVer = localStorage.getItem("OPENPITCH_DB_VERSION");
+            if (isLocal && hasLocalDb) {
+                needSync = false;
+            } else {
+                needSync = savedVer !== window.OPENPITCH_SAVED_VERSION;
+            }
         } catch (e) {}
 
         if (needSync) {
             const cloned = JSON.parse(JSON.stringify(window.OPENPITCH_SAVED_DB));
-            window.__OPENPITCH_MEM_DB = cloned;
+            window.__OPENPITCH_MEM_DBS[tenantId] = cloned;
             try {
-                localStorage.setItem("OPENPITCH_DB", JSON.stringify(cloned));
+                localStorage.setItem(storageKey, JSON.stringify(cloned));
                 localStorage.setItem("OPENPITCH_DB_VERSION", window.OPENPITCH_SAVED_VERSION || "");
-            } catch (err) {
-                // Safari điện thoại đầy 5MB -> vẫn chạy mượt bằng dữ liệu từ saved-data.js
-            }
+            } catch (err) {}
             return cloned;
         }
     }
 
     let raw = null;
-    try { raw = localStorage.getItem("OPENPITCH_DB"); } catch (e) {}
+    try { raw = localStorage.getItem(storageKey); } catch (e) {}
 
     if (!raw) {
-        const fresh = window.OPENPITCH_SAVED_DB
-            ? JSON.parse(JSON.stringify(window.OPENPITCH_SAVED_DB))
-            : buildDefaultData();
-        window.__OPENPITCH_MEM_DB = fresh;
-        try { localStorage.setItem("OPENPITCH_DB", JSON.stringify(fresh)); } catch (e) {}
+        let fresh;
+        if (isMain) {
+            fresh = window.OPENPITCH_SAVED_DB
+                ? JSON.parse(JSON.stringify(window.OPENPITCH_SAVED_DB))
+                : buildDefaultData();
+        } else {
+            // Cửa hàng của Admin mới: luôn khởi tạo DỮ LIỆU TRỐNG ĐỘC LẬP
+            fresh = buildEmptyTenantData(getActiveStoreNameSafe(tenantId));
+        }
+        window.__OPENPITCH_MEM_DBS[tenantId] = fresh;
+        try { localStorage.setItem(storageKey, JSON.stringify(fresh)); } catch (e) {}
         return fresh;
     }
 
     const parsed = JSON.parse(raw);
-    const fresh = buildDefaultData();
+    const defaultRef = buildDefaultData();
     let migrated = false;
 
     if (parsed.openingCashFund === undefined) { parsed.openingCashFund = 0; migrated = true; }
-    if (!parsed.pitches || parsed.pitches.length === 0) { parsed.pitches = fresh.pitches; migrated = true; }
-    if (!parsed.categories || parsed.categories.length === 0) { parsed.categories = [...fresh.categories]; migrated = true; }
-    if (!parsed.suppliers || parsed.suppliers.length === 0) { parsed.suppliers = fresh.suppliers; migrated = true; }
-    if (!parsed.promotions) { parsed.promotions = fresh.promotions; migrated = true; }
-    if (!parsed.posOrders) { parsed.posOrders = fresh.posOrders; migrated = true; }
-    if (!parsed.timeSlots || !parsed.timeSlots[0].start) { parsed.timeSlots = fresh.timeSlots; migrated = true; }
+    if (!Array.isArray(parsed.categories) || parsed.categories.length === 0) {
+        parsed.categories = ["Nước uống", "Đồ ăn", "Phụ kiện"];
+        migrated = true;
+    }
+    if (!Array.isArray(parsed.pitches)) {
+        parsed.pitches = isMain ? defaultRef.pitches : [];
+        migrated = true;
+    } else if (isMain && parsed.pitches.length === 0) {
+        parsed.pitches = defaultRef.pitches;
+        migrated = true;
+    }
+    if (!Array.isArray(parsed.suppliers)) {
+        parsed.suppliers = isMain ? defaultRef.suppliers : [];
+        migrated = true;
+    } else if (isMain && parsed.suppliers.length === 0) {
+        parsed.suppliers = defaultRef.suppliers;
+        migrated = true;
+    }
+    if (!Array.isArray(parsed.promotions)) {
+        parsed.promotions = isMain ? defaultRef.promotions : [];
+        migrated = true;
+    }
+    if (!Array.isArray(parsed.products)) {
+        parsed.products = isMain ? defaultRef.products : [];
+        migrated = true;
+    }
+    if (!Array.isArray(parsed.bookings)) {
+        parsed.bookings = isMain ? defaultRef.bookings : [];
+        migrated = true;
+    }
+    if (!Array.isArray(parsed.posOrders)) {
+        parsed.posOrders = isMain ? defaultRef.posOrders : [];
+        migrated = true;
+    }
+    if (!Array.isArray(parsed.inventoryLogs)) {
+        parsed.inventoryLogs = isMain ? defaultRef.inventoryLogs : [];
+        migrated = true;
+    }
+    if (!parsed.timeSlots || !parsed.timeSlots[0] || !parsed.timeSlots[0].start) {
+        parsed.timeSlots = defaultRef.timeSlots;
+        migrated = true;
+    }
 
     (parsed.products || []).forEach(p => {
-        const ref = fresh.products.find(x => x.id === p.id);
-        if (p.supplierId === undefined) { p.supplierId = ref ? ref.supplierId : "NCC01"; migrated = true; }
+        const ref = isMain ? defaultRef.products.find(x => x.id === p.id) : null;
+        if (p.supplierId === undefined) { p.supplierId = ref ? ref.supplierId : ""; migrated = true; }
         if (p.expiryDate === undefined) { p.expiryDate = ref ? ref.expiryDate : ""; migrated = true; }
         if (p.lastSoldDate === undefined) { p.lastSoldDate = ref ? ref.lastSoldDate : getTodayISO(); migrated = true; }
         if (p.discountPercent === undefined) { p.discountPercent = ref ? ref.discountPercent : 0; migrated = true; }
@@ -383,20 +496,56 @@ function getPitchData() {
         }
     });
 
-    window.__OPENPITCH_MEM_DB = parsed;
+    window.__OPENPITCH_MEM_DBS[tenantId] = parsed;
     if (migrated) {
-        try { localStorage.setItem("OPENPITCH_DB", JSON.stringify(parsed)); } catch (e) {}
+        try { localStorage.setItem(storageKey, JSON.stringify(parsed)); } catch (e) {}
     }
     return parsed;
 }
 
-function savePitchData(data) {
-    window.__OPENPITCH_MEM_DB = data;
+function savePitchData(data, forceTenantId = null) {
+    const tenantId = forceTenantId || resolveActiveTenantId();
+    const storageKey = getTenantStorageKey(tenantId);
+    if (!window.__OPENPITCH_MEM_DBS) window.__OPENPITCH_MEM_DBS = {};
+    window.__OPENPITCH_MEM_DBS[tenantId] = data;
     try {
-        localStorage.setItem("OPENPITCH_DB", JSON.stringify(data));
+        localStorage.setItem(storageKey, JSON.stringify(data));
         return true;
     } catch (err) {
+        if (typeof showToast === "function") {
+            showToast("Đã lưu tạm trong phiên hiện tại (Bộ nhớ trình duyệt đã đầy dung lượng ảnh).", "warning");
+        }
         return true;
+    }
+}
+
+// Đọc nhanh thống kê quy mô của 1 cửa hàng bất kỳ (hiển thị trong bảng quản lý của Chủ web)
+function getTenantQuickStats(tenantId) {
+    const storageKey = getTenantStorageKey(tenantId);
+    let raw = null;
+    try { raw = localStorage.getItem(storageKey); } catch (e) {}
+    if (!raw) {
+        if (tenantId === "main") {
+            const mainDb = getPitchData("main");
+            return {
+                pitches: (mainDb.pitches || []).length,
+                products: (mainDb.products || []).length,
+                bookings: (mainDb.bookings || []).length,
+                orders: (mainDb.posOrders || []).length
+            };
+        }
+        return { pitches: 0, products: 0, bookings: 0, orders: 0 };
+    }
+    try {
+        const d = JSON.parse(raw);
+        return {
+            pitches: (d.pitches || []).length,
+            products: (d.products || []).length,
+            bookings: (d.bookings || []).length,
+            orders: (d.posOrders || []).length
+        };
+    } catch (e) {
+        return { pitches: 0, products: 0, bookings: 0, orders: 0 };
     }
 }
 
@@ -487,8 +636,14 @@ function formatVND(amount) {
 }
 
 function resetDemoData() {
-    if (confirm("Khôi phục lại dữ liệu gốc ban đầu của hệ thống?")) {
-        localStorage.setItem("OPENPITCH_DB", JSON.stringify(buildDefaultData()));
+    const tenantId = resolveActiveTenantId();
+    const isMain = tenantId === "main";
+    const msg = isMain
+        ? "Khôi phục lại dữ liệu mẫu gốc cho Hệ thống chính?"
+        : "Làm sạch toàn bộ dữ liệu cửa hàng này về trạng thái trống (0 dữ liệu)?";
+    if (confirm(msg)) {
+        const fresh = isMain ? buildDefaultData() : buildEmptyTenantData(getActiveStoreNameSafe(tenantId));
+        savePitchData(fresh, tenantId);
         location.reload();
     }
 }

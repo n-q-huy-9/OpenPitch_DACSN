@@ -102,8 +102,8 @@
     <div class="main-content">
         <header class="topbar d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 sticky-top">
             <div>
-                <h5 class="mb-0 fw-bold">Bảng Điều Phối &amp; Quản Lý Lịch Đặt Sân</h5>
-                <small class="text-muted">Chọn ngày để xem lịch thực tế • Hỗ trợ khung 1 tiếng hoặc giờ lẻ (VD: 05:30 - 06:30)</small>
+                <h5 class="mb-0 fw-bold" id="bkPageTitle">Bảng Điều Phối &amp; Quản Lý Lịch Đặt Sân</h5>
+                <small class="text-muted" id="bkPageSub">Chọn ngày để xem lịch thực tế • Hỗ trợ khung 1 tiếng hoặc giờ lẻ (VD: 05:30 - 06:30)</small>
             </div>
 
             <div class="d-flex flex-wrap align-items-center gap-2">
@@ -208,18 +208,20 @@
                         </div>
                     </div>
 
-                    <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <label class="form-label small fw-semibold">Trạng thái ca sân</label>
-                            <select id="bkStatus" class="form-select">
-                                <option value="booked">Đã đặt trước</option>
-                                <option value="playing">Đang đá trên sân</option>
-                                <option value="tournament">Lịch giải đấu</option>
-                            </select>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label small fw-semibold">Tiền cọc trước (VNĐ)</label>
-                            <input type="number" id="bkDeposit" class="form-control" value="0" step="10000" min="0">
+                    <div id="bkStaffOnlyFields">
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">Trạng thái ca sân</label>
+                                <select id="bkStatus" class="form-select">
+                                    <option value="booked">Đã đặt trước</option>
+                                    <option value="playing">Đang đá trên sân</option>
+                                    <option value="tournament">Lịch giải đấu</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">Tiền cọc trước (VNĐ)</label>
+                                <input type="number" id="bkDeposit" class="form-control" value="0" step="10000" min="0">
+                            </div>
                         </div>
                     </div>
 
@@ -228,7 +230,7 @@
                         <input type="text" id="bkNote" class="form-control" placeholder="VD: Thuê 10 áo Bib, đá 1 tiếng">
                     </div>
 
-                    <div class="form-check form-switch p-2 ps-5 bg-light rounded-3 border">
+                    <div id="bkStaffPaidSwitch" class="form-check form-switch p-2 ps-5 bg-light rounded-3 border">
                         <input class="form-check-input" type="checkbox" id="bkPaid">
                         <label class="form-check-label fw-semibold text-success" for="bkPaid">
                             Đã thu đủ tiền sân (Tự động cộng vào Doanh thu thực thu)
@@ -306,7 +308,12 @@
             const head = document.getElementById('scheduleHead');
             let headHtml = `<tr><th class="text-center time-col">Khung giờ / Sân</th>`;
             if (visiblePitches.length === 0) {
-                headHtml += `<th class="text-center text-muted fw-normal py-3">Chưa có sân thuộc loại "${currentPitchType}" (Bạn có thể thêm ở mục Quản lý sân bóng)</th>`;
+                const emptyPitchMsg = db.pitches.length === 0
+                    ? (canManage('pitches')
+                        ? `Cửa hàng chưa có sân bóng nào. <a href="pitches.html" class="fw-bold text-success text-decoration-none">+ Vào mục Quản lý sân bóng để tạo sân đầu tiên</a>`
+                        : `Cụm sân này hiện chưa đăng danh sách sân bóng.`)
+                    : `Chưa có sân thuộc loại "${currentPitchType}".`;
+                headHtml += `<th class="text-center text-muted fw-normal py-3">${emptyPitchMsg}</th>`;
             } else {
                 visiblePitches.forEach(p => {
                     headHtml += `
@@ -378,25 +385,48 @@
                             const stLabel = b.status === 'playing' ? 'Đang đá'
                                 : (b.status === 'tournament' ? 'Giải đấu' : 'Đã đặt');
 
-                            cellHtml += `
-                                <div class="booking-card ${cls}" onclick="openEditBookingModal('${b.id}')">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <span class="badge bg-white text-dark border" style="font-size: 0.7rem;">
-                                            <i class="bi bi-clock me-1"></i>${b.startTime} - ${b.endTime}
-                                        </span>
-                                        <span class="fw-bold text-success small">${formatVND(price)}</span>
-                                    </div>
-                                    <div class="fw-bold small">${b.customer}</div>
-                                    <div class="text-muted" style="font-size: 0.75rem;">
-                                        <i class="bi bi-telephone me-1"></i>${b.phone}
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center mt-1">
-                                        <span class="badge bg-dark bg-opacity-10 text-dark" style="font-size: 0.68rem;">${stLabel}</span>
-                                        ${b.paid
-                                            ? `<span class="badge bg-success" style="font-size: 0.68rem;">Đã thu tiền</span>`
-                                            : `<span class="badge bg-warning text-dark" style="font-size: 0.68rem;">Chưa TT</span>`}
-                                    </div>
-                                </div>`;
+                            const curUser = getCurrentUser();
+                            const isBkMgr = canManage('bookings');
+                            const isMyBooking = Boolean(curUser && b.bookedBy && b.bookedBy.toLowerCase() === curUser.username.toLowerCase());
+
+                            if (isBkMgr || isMyBooking) {
+                                cellHtml += `
+                                    <div class="booking-card ${cls}" onclick="openEditBookingModal('${b.id}')">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="badge bg-white text-dark border" style="font-size: 0.7rem;">
+                                                <i class="bi bi-clock me-1"></i>${b.startTime} - ${b.endTime}
+                                            </span>
+                                            <span class="fw-bold text-success small">${formatVND(price)}</span>
+                                        </div>
+                                        <div class="fw-bold small">
+                                            ${b.customer}
+                                            ${isMyBooking && !isBkMgr ? '<span class="badge bg-success ms-1" style="font-size:0.65rem;">Lịch của bạn</span>' : ''}
+                                        </div>
+                                        <div class="text-muted" style="font-size: 0.75rem;">
+                                            <i class="bi bi-telephone me-1"></i>${b.phone}
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mt-1">
+                                            <span class="badge bg-dark bg-opacity-10 text-dark" style="font-size: 0.68rem;">${stLabel}</span>
+                                            ${b.paid
+                                                ? `<span class="badge bg-success" style="font-size: 0.68rem;">Đã thu tiền</span>`
+                                                : `<span class="badge bg-warning text-dark" style="font-size: 0.68rem;">Chưa TT</span>`}
+                                        </div>
+                                    </div>`;
+                            } else {
+                                cellHtml += `
+                                    <div class="booking-card ${cls}" style="cursor: default; opacity: 0.92;">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="badge bg-white text-dark border" style="font-size: 0.7rem;">
+                                                <i class="bi bi-clock me-1"></i>${b.startTime} - ${b.endTime}
+                                            </span>
+                                            <span class="badge bg-secondary" style="font-size: 0.66rem;">Đã kín</span>
+                                        </div>
+                                        <div class="fw-semibold small text-secondary"><i class="bi bi-lock-fill me-1"></i>Đã có khách đặt</div>
+                                        <div class="mt-1">
+                                            <span class="badge bg-dark bg-opacity-10 text-dark" style="font-size: 0.68rem;">${stLabel}</span>
+                                        </div>
+                                    </div>`;
+                            }
                         });
 
                         if (!isFullyCovered && pitch.status !== 'maintenance') {
@@ -458,18 +488,27 @@
         }
 
         function openNewBookingModal(pitchId = '', startTime = '17:00', endTime = '18:00') {
-            document.getElementById('bookingModalTitle').innerText = 'Đặt lịch sân mới';
+            if (!getCurrentUser()) {
+                requireLoginForAction('đặt lịch sân bóng', () => openNewBookingModal(pitchId, startTime, endTime));
+                return;
+            }
+            const user = getCurrentUser();
+            const isBkMgr = canManage('bookings');
+
+            document.getElementById('bookingModalTitle').innerText = isBkMgr ? 'Đặt lịch sân mới' : 'Đặt lịch sân của bạn';
             document.getElementById('bkId').value = '';
             document.getElementById('bkDate').value = selectedDate;
             populatePitchSelect(pitchId);
             document.getElementById('bkStartTime').value = startTime;
             document.getElementById('bkEndTime').value = endTime;
-            document.getElementById('bkCustomer').value = '';
-            document.getElementById('bkPhone').value = '';
+            document.getElementById('bkCustomer').value = isBkMgr ? '' : (user.fullName || '');
+            document.getElementById('bkPhone').value = isBkMgr ? '' : (user.phone || '');
             document.getElementById('bkStatus').value = 'booked';
             document.getElementById('bkDeposit').value = 0;
             document.getElementById('bkNote').value = '';
             document.getElementById('bkPaid').checked = false;
+            document.getElementById('bkStaffOnlyFields').classList.toggle('d-none', !isBkMgr);
+            document.getElementById('bkStaffPaidSwitch').classList.toggle('d-none', !isBkMgr);
             document.getElementById('btnDeleteBooking').classList.add('d-none');
             updateModalPricePreview();
             bookingModal.show();
@@ -480,7 +519,21 @@
             const b = db.bookings.find(item => item.id === bookingId);
             if (!b) return;
 
-            document.getElementById('bookingModalTitle').innerText = `Cập nhật lịch #${b.id}`;
+            const user = getCurrentUser();
+            const isBkMgr = canManage('bookings');
+            const isMyBooking = Boolean(user && b.bookedBy && b.bookedBy.toLowerCase() === user.username.toLowerCase());
+            if (!isBkMgr && !isMyBooking) {
+                showToast('Bạn chỉ có thể xem hoặc hủy lịch đặt của chính mình.', 'warning');
+                return;
+            }
+            if (!isBkMgr && b.paid) {
+                showToast('Lịch này đã thanh toán, vui lòng liên hệ chủ sân nếu cần thay đổi.', 'info');
+                return;
+            }
+
+            document.getElementById('bkStaffOnlyFields').classList.toggle('d-none', !isBkMgr);
+            document.getElementById('bkStaffPaidSwitch').classList.toggle('d-none', !isBkMgr);
+            document.getElementById('bookingModalTitle').innerText = isBkMgr ? `Cập nhật lịch #${b.id}` : `Lịch đặt của bạn #${b.id}`;
             document.getElementById('bkId').value = b.id;
             document.getElementById('bkDate').value = b.date || selectedDate;
             populatePitchSelect(b.pitchId, b.pitchId);
@@ -532,6 +585,10 @@
                 return;
             }
 
+            const user = getCurrentUser();
+            const isBkMgr = canManage('bookings');
+            const existingBk = id ? db.bookings.find(b => b.id === id) : null;
+
             const bookingObj = {
                 id: id || ('HD' + Date.now().toString().slice(-3)),
                 date,
@@ -540,10 +597,11 @@
                 endTime,
                 customer: document.getElementById('bkCustomer').value.trim(),
                 phone: document.getElementById('bkPhone').value.trim(),
-                status: document.getElementById('bkStatus').value,
-                deposit: Number(document.getElementById('bkDeposit').value) || 0,
+                status: isBkMgr ? document.getElementById('bkStatus').value : 'booked',
+                deposit: isBkMgr ? (Number(document.getElementById('bkDeposit').value) || 0) : 0,
                 note: document.getElementById('bkNote').value.trim(),
-                paid: document.getElementById('bkPaid').checked,
+                paid: isBkMgr ? document.getElementById('bkPaid').checked : false,
+                bookedBy: existingBk ? (existingBk.bookedBy || '') : (user ? user.username : ''),
                 dayIndex: getDayIndexFromISO(date)
             };
 
@@ -573,7 +631,28 @@
             showToast(`Đã hủy lịch đặt #${id}.`, 'info');
         }
 
-        renderSchedule();
+        function applyBookingsRoleUI() {
+            const isBkMgr = canManage('bookings');
+            document.getElementById('bkPageTitle').innerText = isBkMgr
+                ? 'Bảng Điều Phối & Quản Lý Lịch Đặt Sân'
+                : 'Xem Lịch Trống & Đặt Sân Trực Tuyến';
+            document.getElementById('bkPageSub').innerText = isBkMgr
+                ? 'Chọn ngày để xem lịch thực tế • Hỗ trợ khung 1 tiếng hoặc giờ lẻ (VD: 05:30 - 06:30)'
+                : 'Xem tự do giờ trống các sân • Bấm vào ô Còn trống để đặt sân (yêu cầu đăng nhập khi đặt)';
+            renderSchedule();
+        }
+
+        window.onAuthStateChanged = function() {
+            applyBookingsRoleUI();
+        };
+
+        applyBookingsRoleUI();
+
+        const bkParams = new URLSearchParams(window.location.search);
+        const prePitch = bkParams.get('pitch');
+        if (prePitch) {
+            openNewBookingModal(prePitch);
+        }
     </script>
 </body>
 </html>

@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phân Quyền & Quản Lý Tài Khoản - openPitch</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .perm-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.72rem;
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-weight: 600;
+            margin: 2px;
+        }
+        .perm-on {
+            background: #DCFCE7;
+            color: #166534;
+            border: 1px solid #86EFAC;
+        }
+        .perm-off {
+            background: #F1F5F9;
+            color: #94A3B8;
+            border: 1px solid #E2E8F0;
+            text-decoration: line-through;
+        }
+        .role-badge-owner { background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; }
+        .role-badge-admin { background: #DBEAFE; color: #1E40AF; border: 1px solid #93C5FD; }
+        .role-badge-customer { background: #F1F5F9; color: #334155; border: 1px solid #CBD5E1; }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar d-flex flex-column p-3">
+        <a href="index.html" class="d-flex align-items-center gap-2 text-white text-decoration-none px-2 py-3 mb-3 border-bottom border-secondary border-opacity-25">
+            <div class="bg-success rounded-3 p-2 d-flex align-items-center justify-content-center">
+                <i class="bi bi-dribbble fs-4 text-white"></i>
+            </div>
+            <div>
+                <h5 class="mb-0 fw-bold">openPitch</h5>
+                <small class="text-secondary" style="font-size: 0.75rem;">Quản lý sân bóng phong trào</small>
+            </div>
+        </a>
+
+        <ul class="nav nav-pills flex-column mb-auto"></ul>
+
+        <div class="p-3 rounded-3 mt-auto mb-2" style="background: rgba(255,255,255,0.06);">
+            <div class="d-flex align-items-center gap-2 text-white">
+                <i class="bi bi-person-circle fs-4 text-success"></i>
+                <div class="small text-truncate">
+                    <div class="fw-semibold text-truncate" id="sidebarUserName">Chủ web Quốc Huy</div>
+                    <span class="text-secondary" style="font-size: 0.75rem;" id="sidebarUserRole">Chủ web</span>
+                </div>
+            </div>
+        </div>
+        <button type="button" onclick="logoutSystem()" class="btn btn-outline-danger btn-sm w-100">
+            <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
+        </button>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <header class="topbar d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 sticky-top">
+            <div>
+                <h5 class="mb-0 fw-bold"><i class="bi bi-shield-lock-fill text-success me-2"></i>Quản Lý Tài Khoản &amp; Phân Quyền (RBAC)</h5>
+                <small class="text-muted">Chỉ dành riêng cho Chủ web • Cấp quyền chủ cửa hàng cho Admin và quản lý tài khoản Khách hàng</small>
+            </div>
+            <button class="btn btn-pitch btn-sm px-3 py-2" onclick="openAccountModal()">
+                <i class="bi bi-person-plus-fill me-1"></i> + Tạo tài khoản Admin mới
+            </button>
+        </header>
+
+        <main class="p-4">
+            <!-- 4 THẺ KPI TÀI KHOẢN -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3 col-6">
+                    <div class="card card-custom p-3 h-100">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted small mb-1">Tổng tài khoản</p>
+                                <h4 class="fw-bold mb-0" id="statTotalAcc">0</h4>
+                            </div>
+                            <div class="icon-box bg-primary bg-opacity-10 text-primary"><i class="bi bi-people-fill"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="card card-custom p-3 h-100">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted small mb-1">Chủ web (Super Admin)</p>
+                                <h4 class="fw-bold mb-0 text-warning" id="statOwnerAcc">0</h4>
+                            </div>
+                            <div class="icon-box bg-warning bg-opacity-10 text-warning"><i class="bi bi-award-fill"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="card card-custom p-3 h-100">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted small mb-1">Admin (Chủ cửa hàng)</p>
+                                <h4 class="fw-bold mb-0 text-info" id="statAdminAcc">0</h4>
+                            </div>
+                            <div class="icon-box bg-info bg-opacity-10 text-info"><i class="bi bi-shop"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="card card-custom p-3 h-100">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted small mb-1">Khách hàng</p>
+                                <h4 class="fw-bold mb-0 text-success" id="statCustomerAcc">0</h4>
+                            </div>
+                            <div class="icon-box bg-success bg-opacity-10 text-success"><i class="bi bi-person-check-fill"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BẢNG QUẢN LÝ TÀI KHOẢN & QUYỀN HẠN -->
+            <div class="card card-custom p-4">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                    <div class="btn-group btn-group-sm" role="group" id="roleFilterGroup">
+                        <button class="btn btn-outline-secondary active" onclick="setRoleFilter('all', this)">Tất cả</button>
+                        <button class="btn btn-outline-primary" onclick="setRoleFilter('admin', this)">Admin (Chủ cửa hàng)</button>
+                        <button class="btn btn-outline-success" onclick="setRoleFilter('customer', this)">Khách hàng</button>
+                    </div>
+                    <div class="input-group input-group-sm" style="max-width: 240px;">
+                        <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" id="accSearchInput" class="form-control" placeholder="Tìm tên, email, SĐT..." oninput="renderAccountsTable()">
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle small mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Thành viên</th>
+                                <th>Vai trò &amp; Cửa hàng riêng</th>
+                                <th>Quyền quản trị được cấp</th>
+                                <th>Trạng thái</th>
+                                <th class="text-end">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="accountsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL TẠO / PHÂN QUYỀN TÀI KHOẢN ADMIN -->
+    <div class="modal fade" id="accountModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <form class="modal-content" onsubmit="saveAccountForm(event)">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="accModalTitle">Tạo tài khoản Admin mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editAccId">
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-7">
+                            <label class="form-label small fw-semibold">Họ và tên</label>
+                            <input type="text" id="accFullName" class="form-control form-control-sm" placeholder="VD: Quản lý Trần Minh" required>
+                        </div>
+                        <div class="col-5">
+                            <label class="form-label small fw-semibold">Vai trò hệ thống</label>
+                            <select id="accRoleCode" class="form-select form-select-sm" onchange="togglePermSection()">
+                                <option value="admin">Admin (Chủ cửa hàng)</option>
+                                <option value="customer">Khách hàng</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Email đăng nhập</label>
+                            <input type="text" id="accUsername" class="form-control form-control-sm" placeholder="quanly@openpitch.vn" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Số điện thoại</label>
+                            <input type="text" id="accPhone" class="form-control form-control-sm" placeholder="0905xxxxxx">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold" id="accPwdLabel">Mật khẩu (tối thiểu 6 ký tự)</label>
+                        <input type="text" id="accPassword" class="form-control form-control-sm" minlength="6" placeholder="123456">
+                    </div>
+
+                    <!-- TÊN CỬA HÀNG ĐỘC LẬP CHO ADMIN -->
+                    <div id="adminStoreSection" class="mb-3">
+                        <label class="form-label small fw-semibold">
+                            <i class="bi bi-shop text-success me-1"></i>Tên Cửa hàng / Cụm sân của Admin
+                        </label>
+                        <input type="text" id="accStoreName" class="form-control form-control-sm" placeholder="VD: Cụm sân Bóng đá Thành Công">
+                        <div class="form-text text-success" style="font-size: 0.72rem;">
+                            <i class="bi bi-database-check me-1"></i>Mỗi Admin mới tạo sẽ có <strong>kho dữ liệu trống hoàn toàn độc lập</strong> (0 sân, 0 sản phẩm, 0 doanh thu) để tự xây dựng cửa hàng riêng.
+                        </div>
+                    </div>
+
+                    <!-- KHỐI TÍCH PHÂN QUYỀN CHI TIẾT CHO ADMIN -->
+                    <div id="adminPermsSection" class="p-3 bg-light rounded-3 border">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small fw-bold text-primary"><i class="bi bi-sliders me-1"></i> Phân quyền quản lý cho Admin:</span>
+                            <button type="button" class="btn btn-outline-success btn-sm py-0 px-2" style="font-size: 0.72rem;" onclick="toggleAllPerms(true)">
+                                Cấp full Chủ cửa hàng
+                            </button>
+                        </div>
+                        <div class="row g-2" id="permSwitchesGrid"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-pitch btn-sm px-4">Lưu tài khoản &amp; Quyền</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/saved-data.js"></script>
+    <script src="assets/js/data.js"></script>
+    <script src="assets/js/app.js"></script>
+    <script>
+        const accountModal = new bootstrap.Modal(document.getElementById('accountModal'));
+        let currentRoleFilter = 'all';
+
+        function buildPermSwitches() {
+            const grid = document.getElementById('permSwitchesGrid');
+            grid.innerHTML = OPENPITCH_PERMISSION_META.map(m => `
+                <div class="col-6">
+                    <div class="form-check form-switch bg-white border rounded-2 px-2 py-2 ps-5 h-100">
+                        <input class="form-check-input" type="checkbox" id="perm_${m.key}" checked>
+                        <label class="form-check-label small fw-semibold" for="perm_${m.key}">
+                            <i class="bi ${m.icon} text-success me-1"></i>${m.label}
+                        </label>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function setRoleFilter(role, btn) {
+            currentRoleFilter = role;
+            document.querySelectorAll('#roleFilterGroup .btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderAccountsTable();
+        }
+
+        function togglePermSection() {
+            const role = document.getElementById('accRoleCode').value;
+            document.getElementById('adminPermsSection').classList.toggle('d-none', role !== 'admin');
+            document.getElementById('adminStoreSection').classList.toggle('d-none', role !== 'admin');
+        }
+
+        function toggleAllPerms(state) {
+            OPENPITCH_PERMISSION_META.forEach(m => {
+                const el = document.getElementById('perm_' + m.key);
+                if (el) el.checked = state;
+            });
+        }
+
+        function renderAccountsTable() {
+            const list = getSystemAccounts();
+            const kw = (document.getElementById('accSearchInput').value || '').trim().toLowerCase();
+
+            document.getElementById('statTotalAcc').innerText = list.length;
+            document.getElementById('statOwnerAcc').innerText = list.filter(a => a.roleCode === 'super_admin').length;
+            document.getElementById('statAdminAcc').innerText = list.filter(a => a.roleCode === 'admin').length;
+            document.getElementById('statCustomerAcc').innerText = list.filter(a => a.roleCode === 'customer').length;
+
+            const filtered = list.filter(a => {
+                if (currentRoleFilter !== 'all' && a.roleCode !== currentRoleFilter) return false;
+                if (kw) {
+                    const hay = `${a.fullName} ${a.username} ${a.phone || ''}`.toLowerCase();
+                    if (!hay.includes(kw)) return false;
+                }
+                return true;
+            });
+
+            const tbody = document.getElementById('accountsTableBody');
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">Không tìm thấy tài khoản phù hợp.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(acc => {
+                const isOwner = acc.roleCode === 'super_admin';
+                const isAdmin = acc.roleCode === 'admin';
+                const roleBadgeCls = isOwner ? 'role-badge-owner' : (isAdmin ? 'role-badge-admin' : 'role-badge-customer');
+
+                let permsHtml = '';
+                if (isOwner) {
+                    permsHtml = `<span class="perm-pill perm-on"><i class="bi bi-stars"></i> Toàn quyền hệ thống + Phân quyền</span>`;
+                } else if (isAdmin) {
+                    permsHtml = OPENPITCH_PERMISSION_META.map(m => {
+                        const has = Boolean(acc.permissions && acc.permissions[m.key]);
+                        return `<span class="perm-pill ${has ? 'perm-on' : 'perm-off'}">
+                                    <i class="bi ${has ? 'bi-check-circle-fill' : 'bi-dash-circle'}"></i>${m.label}
+                                </span>`;
+                    }).join('');
+                } else {
+                    permsHtml = `<span class="text-muted">Xem sân, Đặt lịch, Mua sắm Online &amp; Đánh giá sao</span>`;
+                }
+
+                const statusHtml = acc.active !== false
+                    ? `<span class="badge bg-success-subtle text-success">Đang hoạt động</span>`
+                    : `<span class="badge bg-danger-subtle text-danger">Đã khóa</span>`;
+
+                let storeMetaHtml = '';
+                if (isOwner || isAdmin) {
+                    const tid = isOwner ? 'main' : acc.tenantId;
+                    const sName = acc.storeName || (isOwner ? 'openPitch (Hệ thống chính)' : `Cửa hàng ${acc.fullName}`);
+                    const st = typeof getTenantQuickStats === 'function' ? getTenantQuickStats(tid) : { pitches: 0, products: 0, bookings: 0, orders: 0 };
+                    storeMetaHtml = `
+                        <div class="fw-semibold text-dark mt-1" style="font-size: 0.76rem;">
+                            <i class="bi bi-shop text-success me-1"></i>${sName}
+                        </div>
+                        <div class="text-muted" style="font-size: 0.7rem;">
+                            ${st.pitches} sân • ${st.products} SP • ${st.bookings} lịch • ${st.orders} đơn
+                        </div>`;
+                }
+
+                return `
+                    <tr>
+                        <td>
+                            <div class="fw-bold text-dark">${acc.fullName}</div>
+                            <div class="text-muted" style="font-size: 0.75rem;">
+                                <code>${acc.username}</code> ${acc.phone ? '• ' + acc.phone : ''}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge ${roleBadgeCls}">${getRoleLabel(acc.roleCode)}</span>
+                            ${storeMetaHtml}
+                        </td>
+                        <td style="max-width: 320px;">${permsHtml}</td>
+                        <td>${statusHtml}</td>
+                        <td class="text-end text-nowrap">
+                            ${isOwner
+                                ? `<button class="btn btn-outline-success btn-sm py-0 px-2" onclick="switchActiveTenant('main', 'index.html')">
+                                       <i class="bi bi-house-door me-1"></i>Web chính
+                                   </button>`
+                                : `
+                                    ${isAdmin ? `<button class="btn btn-outline-success btn-sm py-0 px-2 me-1" title="Vào xem kho dữ liệu cửa hàng này" onclick="switchActiveTenant('${acc.tenantId}', 'index.html')">
+                                        <i class="bi bi-box-arrow-in-right"></i> Xem CH
+                                    </button>` : ''}
+                                    <button class="btn btn-outline-primary btn-sm py-0 px-2 me-1" title="Phân quyền / Sửa thông tin" onclick="openAccountModal('${acc.id}')">
+                                        <i class="bi bi-sliders"></i> Quyền
+                                    </button>
+                                    <button class="btn btn-outline-${acc.active !== false ? 'warning' : 'success'} btn-sm py-0 px-2 me-1"
+                                        title="${acc.active !== false ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}"
+                                        onclick="toggleAccountLock('${acc.id}')">
+                                        <i class="bi bi-${acc.active !== false ? 'lock' : 'unlock'}"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger btn-sm py-0 px-2" title="Xóa tài khoản" onclick="deleteAccount('${acc.id}')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                `
+                            }
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function openAccountModal(accId = '') {
+            buildPermSwitches();
+            const list = getSystemAccounts();
+
+            if (accId) {
+                const acc = list.find(a => a.id === accId);
+                if (!acc || acc.roleCode === 'super_admin') return;
+                document.getElementById('accModalTitle').innerText = `Phân quyền & Sửa: ${acc.fullName}`;
+                document.getElementById('editAccId').value = acc.id;
+                document.getElementById('accFullName').value = acc.fullName;
+                document.getElementById('accRoleCode').value = acc.roleCode;
+                document.getElementById('accUsername').value = acc.username;
+                document.getElementById('accPhone').value = acc.phone || '';
+                document.getElementById('accStoreName').value = acc.storeName || '';
+                document.getElementById('accPassword').value = acc.password;
+                document.getElementById('accPassword').required = true;
+                OPENPITCH_PERMISSION_META.forEach(m => {
+                    const el = document.getElementById('perm_' + m.key);
+                    if (el) el.checked = Boolean(acc.permissions && acc.permissions[m.key]);
+                });
+            } else {
+                document.getElementById('accModalTitle').innerText = 'Tạo tài khoản Admin (Chủ cửa hàng)';
+                document.getElementById('editAccId').value = '';
+                document.getElementById('accFullName').value = '';
+                document.getElementById('accRoleCode').value = 'admin';
+                document.getElementById('accUsername').value = '';
+                document.getElementById('accPhone').value = '';
+                document.getElementById('accStoreName').value = '';
+                document.getElementById('accPassword').value = '123456';
+                document.getElementById('accPassword').required = true;
+                toggleAllPerms(true);
+            }
+
+            togglePermSection();
+            accountModal.show();
+        }
+
+        function saveAccountForm(e) {
+            e.preventDefault();
+            const list = getSystemAccounts();
+            const editId = document.getElementById('editAccId').value;
+            const fullName = document.getElementById('accFullName').value.trim();
+            const roleCode = document.getElementById('accRoleCode').value;
+            const username = document.getElementById('accUsername').value.trim().toLowerCase();
+            const phone = document.getElementById('accPhone').value.trim();
+            const password = document.getElementById('accPassword').value;
+
+            const duplicate = list.find(a => a.id !== editId && a.username.toLowerCase() === username);
+            if (duplicate) {
+                showToast(`Email đăng nhập "${username}" đã tồn tại!`, 'warning');
+                return;
+            }
+
+            const permissions = {};
+            if (roleCode === 'admin') {
+                OPENPITCH_PERMISSION_META.forEach(m => {
+                    const el = document.getElementById('perm_' + m.key);
+                    permissions[m.key] = Boolean(el && el.checked);
+                });
+            }
+
+            const rawStoreName = document.getElementById('accStoreName').value.trim();
+            const storeName = roleCode === 'admin' ? (rawStoreName || `Cửa hàng ${fullName}`) : '';
+
+            if (editId) {
+                const target = list.find(a => a.id === editId);
+                if (target) {
+                    target.fullName = fullName;
+                    target.roleCode = roleCode;
+                    target.role = getRoleLabel(roleCode);
+                    target.username = username;
+                    target.phone = phone;
+                    target.password = password;
+                    target.permissions = permissions;
+                    if (roleCode === 'admin') {
+                        if (!target.tenantId || target.tenantId === 'main') {
+                            target.tenantId = 'store_' + Date.now().toString().slice(-6);
+                            savePitchData(buildEmptyTenantData(storeName), target.tenantId);
+                        }
+                        target.storeName = storeName;
+                    }
+                }
+            } else {
+                const newId = 'ACC_' + Date.now().toString().slice(-5);
+                const newTenantId = roleCode === 'admin' ? ('store_' + Date.now().toString().slice(-6)) : '';
+                list.push({
+                    id: newId,
+                    fullName,
+                    username,
+                    phone,
+                    password,
+                    roleCode,
+                    role: getRoleLabel(roleCode),
+                    tenantId: newTenantId,
+                    storeName,
+                    active: true,
+                    permissions,
+                    createdAt: new Date().toLocaleDateString('vi-VN')
+                });
+                // Khởi tạo ngay kho dữ liệu TRỐNG HOÀN TOÀN cho Admin mới
+                if (roleCode === 'admin' && newTenantId) {
+                    savePitchData(buildEmptyTenantData(storeName), newTenantId);
+                }
+            }
+
+            saveSystemAccounts(list);
+            accountModal.hide();
+            renderAccountsTable();
+            showToast(editId ? `Đã cập nhật phân quyền cho ${fullName}!` : `Đã tạo tài khoản ${getRoleLabel(roleCode)} cho ${fullName}!`, 'success');
+        }
+
+        function toggleAccountLock(accId) {
+            const list = getSystemAccounts();
+            const acc = list.find(a => a.id === accId);
+            if (!acc || acc.roleCode === 'super_admin') return;
+            acc.active = acc.active === false ? true : false;
+            saveSystemAccounts(list);
+            renderAccountsTable();
+            showToast(acc.active ? `Đã mở khóa tài khoản ${acc.fullName}.` : `Đã khóa tài khoản ${acc.fullName}.`, acc.active ? 'success' : 'warning');
+        }
+
+        function deleteAccount(accId) {
+            const list = getSystemAccounts();
+            const acc = list.find(a => a.id === accId);
+            if (!acc || acc.roleCode === 'super_admin') return;
+            if (!confirm(`Xóa vĩnh viễn tài khoản "${acc.fullName}" (${acc.username}) và dữ liệu cửa hàng riêng của họ?`)) return;
+            if (acc.tenantId && acc.tenantId !== 'main') {
+                try { localStorage.removeItem(getTenantStorageKey(acc.tenantId)); } catch (e) {}
+                if (localStorage.getItem('OPENPITCH_SELECTED_TENANT') === acc.tenantId) {
+                    localStorage.setItem('OPENPITCH_SELECTED_TENANT', 'main');
+                }
+            }
+            saveSystemAccounts(list.filter(a => a.id !== accId));
+            renderAccountsTable();
+            showToast(`Đã xóa tài khoản ${acc.fullName}.`, 'info');
+        }
+
+        renderAccountsTable();
+    </script>
+</body>
+</html>

@@ -80,10 +80,10 @@
     <div class="main-content">
         <header class="topbar d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 sticky-top" id="posTopbar">
             <div>
-                <h5 class="mb-0 fw-bold">Quản Lý Hàng Hóa, Khuyến Mãi &amp; Bán Hàng (POS)</h5>
-                <small class="text-muted">Bấm vào ảnh để xem album nhiều góc chụp • Hỗ trợ danh mục tùy chỉnh, chọn size &amp; cảnh báo HSD</small>
+                <h5 class="mb-0 fw-bold" id="posPageTitle">Quản Lý Hàng Hóa, Khuyến Mãi &amp; Bán Hàng (POS)</h5>
+                <small class="text-muted" id="posPageSub">Bấm vào ảnh để xem album nhiều góc chụp • Hỗ trợ danh mục tùy chỉnh, chọn size &amp; cảnh báo HSD</small>
             </div>
-            <div class="d-flex flex-wrap gap-2">
+            <div class="d-flex flex-wrap gap-2" id="posAdminActions">
                 <button class="btn btn-warning text-dark btn-sm px-3 fw-semibold" onclick="openItemPromoModal()">
                     <i class="bi bi-tags-fill me-1"></i> Chọn món khuyến mãi
                 </button>
@@ -123,22 +123,26 @@
                 <div class="col-lg-4">
                     <div class="card card-custom p-3 pos-bill" id="posBillCard">
                         <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
-                            <h6 class="fw-bold mb-0"><i class="bi bi-receipt-cutoff text-success me-1"></i> Hóa đơn bán hàng</h6>
+                            <h6 class="fw-bold mb-0" id="posBillTitle"><i class="bi bi-receipt-cutoff text-success me-1"></i> Hóa đơn bán hàng</h6>
                             <button class="btn btn-link btn-sm text-danger text-decoration-none p-0" onclick="clearCart()">Xóa hết</button>
                         </div>
 
-                        <div class="mb-2">
-                            <label class="form-label small fw-semibold">Khách hàng / Gắn vào sân đang đặt:</label>
-                            <select id="posCustomerSelect" class="form-select form-select-sm"></select>
+                        <div id="posStaffOrderControls">
+                            <div class="mb-2">
+                                <label class="form-label small fw-semibold">Khách hàng / Gắn vào sân đang đặt:</label>
+                                <select id="posCustomerSelect" class="form-select form-select-sm"></select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold"><i class="bi bi-laptop text-primary me-1"></i> Hình thức mua hàng:</label>
+                                <select id="posChannelSelect" class="form-select form-select-sm">
+                                    <option value="online">Mua Online trên Web (Điện thoại / Laptop — Có đánh giá)</option>
+                                    <option value="counter">Mua trực tiếp tại quầy</option>
+                                </select>
+                            </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold"><i class="bi bi-laptop text-primary me-1"></i> Hình thức mua hàng:</label>
-                            <select id="posChannelSelect" class="form-select form-select-sm">
-                                <option value="online">Mua Online trên Web (Điện thoại / Laptop — Có đánh giá)</option>
-                                <option value="counter">Mua trực tiếp tại quầy</option>
-                            </select>
-                        </div>
+                        <div id="posCustomerBuyerBox" class="mb-3 p-2 px-3 bg-light rounded-3 border small d-none"></div>
 
                         <div id="cartItemsContainer" class="mb-3" style="max-height: 270px; overflow-y: auto;"></div>
 
@@ -162,7 +166,7 @@
                                 <span class="fw-bold fs-6">Thực thu:</span>
                                 <h4 class="fw-bold text-success mb-0" id="cartTotalAmount">0đ</h4>
                             </div>
-                            <button class="btn btn-pitch w-100 py-2" onclick="checkoutPOS()">
+                            <button class="btn btn-pitch w-100 py-2" id="posCheckoutBtn" onclick="checkoutPOS()">
                                 <i class="bi bi-check2-circle me-1"></i> Thanh toán &amp; Xuất kho
                             </button>
                         </div>
@@ -202,7 +206,7 @@
                             <div class="album-thumb-strip mb-2" id="albumThumbStrip"></div>
 
                             <!-- Thanh công cụ quản lý ảnh trong album -->
-                            <div class="d-flex flex-wrap gap-2">
+                            <div class="d-flex flex-wrap gap-2" id="albumAdminTools">
                                 <button type="button" class="btn btn-outline-success btn-sm" onclick="triggerAddAlbumImages()">
                                     <i class="bi bi-plus-circle me-1"></i> Thêm ảnh vào album
                                 </button>
@@ -237,7 +241,7 @@
                                 <button type="button" class="btn btn-pitch py-2" onclick="addFromAlbumToCart()">
                                     <i class="bi bi-cart-plus-fill me-1"></i> Thêm vào hóa đơn
                                 </button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="editProductFromAlbum()">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="albumEditProdBtn" onclick="editProductFromAlbum()">
                                     <i class="bi bi-pencil-square me-1"></i> Chỉnh sửa thông tin / Size / Danh mục
                                 </button>
                             </div>
@@ -737,7 +741,7 @@
                     Tất cả
                 </button>
                 <button type="button" class="btn cat-chip cat-chip-promo ${currentCat === 'promo' ? 'active' : ''}" onclick="filterCategory('promo')">
-                    <i class="bi bi-fire text-danger me-1"></i>Đang KM / Cần đẩy bán
+                    <i class="bi bi-fire text-danger me-1"></i>${canManage('pos') ? 'Đang KM / Cần đẩy bán' : 'Đang khuyến mãi'}
                 </button>
             `;
 
@@ -750,11 +754,13 @@
                 `;
             });
 
-            html += `
-                <button type="button" class="btn cat-chip cat-chip-add" onclick="openCategoryModal()" title="Tạo thêm thanh danh mục mới">
-                    <i class="bi bi-plus-lg me-1"></i>Danh mục
-                </button>
-            `;
+            if (canManage('pos')) {
+                html += `
+                    <button type="button" class="btn cat-chip cat-chip-add" onclick="openCategoryModal()" title="Tạo thêm thanh danh mục mới">
+                        <i class="bi bi-plus-lg me-1"></i>Danh mục
+                    </button>
+                `;
+            }
             bar.innerHTML = html;
 
             // Đồng bộ dropdown chọn danh mục trong form thêm/sửa sản phẩm
@@ -861,6 +867,10 @@
 
         function renderFoodExpiryBanner(db) {
             const banner = document.getElementById('posFoodExpiryBanner');
+            if (!canManage('pos')) {
+                banner.classList.add('d-none');
+                return;
+            }
             const summary = getInventoryAlertSummary(db);
             if (summary.foodUrgentItems.length === 0) {
                 banner.classList.add('d-none');
@@ -912,9 +922,7 @@
                         <div class="card card-custom p-5 text-center text-muted">
                             <i class="bi bi-box2 fs-2 mb-2 text-secondary"></i>
                             <div class="small mb-2">Chưa có sản phẩm nào trong mục <strong>${currentCat === 'all' ? 'này' : currentCat}</strong>.</div>
-                            <button type="button" class="btn btn-pitch btn-sm mx-auto px-3" onclick="openProductFormModal('', '${currentCat !== 'all' && currentCat !== 'promo' ? currentCat.replace(/'/g, "\\'") : ''}')">
-                                <i class="bi bi-plus-lg me-1"></i> Thêm sản phẩm vào mục này
-                            </button>
+                            ${canManage('pos') ? `<button type="button" class="btn btn-pitch btn-sm mx-auto px-3" onclick="openProductFormModal('', '${currentCat !== 'all' && currentCat !== 'promo' ? currentCat.replace(/'/g, "\\'") : ''}')"><i class="bi bi-plus-lg me-1"></i> Thêm sản phẩm vào mục này</button>` : ''}
                         </div>
                     </div>`;
                 return;
@@ -972,21 +980,21 @@
                                 <span class="product-album-pill">
                                     <i class="bi bi-images"></i> ${imgs.length > 1 ? imgs.length + ' ảnh' : 'Xem album'}
                                 </span>
-                                <button type="button" class="btn-change-img" title="Thêm / Đổi ảnh nhanh"
+                                ${canManage('pos') ? `<button type="button" class="btn-change-img" title="Thêm / Đổi ảnh nhanh"
                                     onclick="event.stopPropagation(); triggerChangeProductImage('${p.id}')">
                                     <i class="bi bi-camera-fill me-1"></i>Đổi ảnh
-                                </button>
+                                </button>` : ''}
                             </div>
 
                             <!-- NỘI DUNG THẺ GỌN ĐẸP, CÂN ĐỐI MỌI MỨC GIÁ -->
                             <div class="p-3 d-flex flex-column flex-grow-1">
                                 <div class="d-flex justify-content-between align-items-center gap-1 mb-1 flex-wrap">
                                     <span class="badge bg-light text-secondary border" style="font-size: 0.7rem;">${p.category}</span>
-                                    ${expiryHtml}
+                                    ${canManage('pos') || st.isFood ? expiryHtml : ''}
                                 </div>
 
                                 ${hasDisc && p.promoLabel ? `<div class="text-danger fw-semibold mb-1" style="font-size: 0.72rem;"><i class="bi bi-tag-fill me-1"></i>${p.promoLabel}</div>` : ''}
-                                ${st.isSlowMoving ? `<div class="text-primary fw-semibold mb-1" style="font-size: 0.72rem;"><i class="bi bi-clock-history me-1"></i>Tồn lâu ${st.daysSinceSold} ngày</div>` : ''}
+                                ${canManage('pos') && st.isSlowMoving ? `<div class="text-primary fw-semibold mb-1" style="font-size: 0.72rem;"><i class="bi bi-clock-history me-1"></i>Tồn lâu ${st.daysSinceSold} ngày</div>` : ''}
 
                                 <div class="product-title-clamp" title="${p.name}">${p.name}</div>
 
@@ -1024,13 +1032,13 @@
 
                                     <!-- DÒNG NÚT THAO TÁC ĐỀU NHAU 100% -->
                                     <div class="d-flex gap-2">
-                                        <button type="button" class="btn btn-outline-secondary btn-sm px-2 text-nowrap" title="Sửa thông tin, giá, size, danh mục"
+                                        ${canManage('pos') ? `<button type="button" class="btn btn-outline-secondary btn-sm px-2 text-nowrap" title="Sửa thông tin, giá, size, danh mục"
                                             onclick="openProductFormModal('${p.id}')">
                                             <i class="bi bi-pencil-square"></i> Sửa
-                                        </button>
+                                        </button>` : ''}
                                         <button type="button" class="btn btn-pitch btn-sm flex-grow-1 text-nowrap"
                                             onclick="addToCart('${p.id}', '${activeSize.replace(/'/g, "\\'")}')">
-                                            <i class="bi bi-plus-lg me-1"></i>Chọn mua
+                                            <i class="bi ${canManage('pos') ? 'bi-plus-lg' : 'bi-cart-plus'} me-1"></i>${canManage('pos') ? 'Chọn mua' : 'Thêm vào giỏ'}
                                         </button>
                                     </div>
                                 </div>
@@ -1113,6 +1121,9 @@
             document.getElementById('albumCounter').innerText = imgs.length > 0 ? `${activeAlbumIdx + 1} / ${imgs.length}` : '0 / 0';
             document.getElementById('albumPrevBtn').classList.toggle('d-none', imgs.length <= 1);
             document.getElementById('albumNextBtn').classList.toggle('d-none', imgs.length <= 1);
+            const isPosMgr = canManage('pos');
+            document.getElementById('albumAdminTools').classList.toggle('d-none', !isPosMgr);
+            document.getElementById('albumEditProdBtn').classList.toggle('d-none', !isPosMgr);
             document.getElementById('btnSetCoverImg').disabled = imgs.length <= 1 || activeAlbumIdx === 0;
             document.getElementById('btnDeleteAlbumImg').disabled = imgs.length === 0;
 
@@ -1283,7 +1294,9 @@
             // Đổ danh sách Nhà cung cấp
             const supSel = document.getElementById('prodFormSupplier');
             if (supSel) {
-                supSel.innerHTML = (db.suppliers || []).map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+                supSel.innerHTML = (db.suppliers || []).length > 0
+                    ? db.suppliers.map(s => `<option value="${s.id}">${s.name}</option>`).join('')
+                    : `<option value="">-- Chưa có nhà cung cấp --</option>`;
             }
 
             const stockInput = document.getElementById('prodFormStock');
@@ -1452,7 +1465,7 @@
             const cat = document.getElementById('prodFormCat').value;
             const sizeMode = document.querySelector('input[name="sizeMode"]:checked').value;
             const iconMap = { 'Nước uống': 'bi-cup-straw', 'Đồ ăn': 'bi-egg-fried', 'Phụ kiện': 'bi-universal-access' };
-            const supId = document.getElementById('prodFormSupplier').value || ((db.suppliers && db.suppliers[0]) ? db.suppliers[0].id : 'NCC01');
+            const supId = document.getElementById('prodFormSupplier').value || ((db.suppliers && db.suppliers[0]) ? db.suppliers[0].id : '');
 
             const basePayload = {
                 name: document.getElementById('prodFormName').value.trim(),
@@ -1850,11 +1863,27 @@
                 showToast('Vui lòng chọn ít nhất 1 sản phẩm để thanh toán!', 'warning');
                 return;
             }
+            if (!getCurrentUser()) {
+                requireLoginForAction('đặt mua & thanh toán đơn hàng', () => checkoutPOS());
+                return;
+            }
+
             const db = getPitchData();
-            const select = document.getElementById('posCustomerSelect');
-            const selectedBookingId = select.value || null;
-            const customerLabel = select.options[select.selectedIndex].text;
-            const orderChannel = document.getElementById('posChannelSelect').value || 'online';
+            const user = getCurrentUser();
+            const isPosMgr = canManage('pos');
+            let selectedBookingId = null;
+            let customerLabel = user.fullName;
+            let orderChannel = 'online';
+
+            if (isPosMgr) {
+                const select = document.getElementById('posCustomerSelect');
+                selectedBookingId = select.value || null;
+                customerLabel = select.options[select.selectedIndex].text;
+                orderChannel = document.getElementById('posChannelSelect').value || 'online';
+            } else {
+                customerLabel = `${user.fullName}${user.phone ? ' (' + user.phone + ')' : ''}`;
+                orderChannel = 'online';
+            }
             const orderId = 'POS' + Date.now().toString().slice(-3);
             const today = getTodayISO();
             const nowStr = formatDateTimeVN(new Date());
@@ -1924,7 +1953,7 @@
 
             // Nếu mua Online trên Web (điện thoại / laptop) -> tự động mở bảng Đánh giá sản phẩm vừa mua
             if (orderChannel === 'online' && purchasedForReview.length > 0) {
-                const defaultName = selectedBookingId ? customerLabel.split(' - ')[1]?.split(' (')[0] || '' : '';
+                const defaultName = !isPosMgr ? (user.fullName || '') : (selectedBookingId ? customerLabel.split(' - ')[1]?.split(' (')[0] || '' : '');
                 openPostPurchaseReviewModal(orderId, purchasedForReview, defaultName);
             }
         }
@@ -2127,6 +2156,11 @@
         }
 
         function writeReviewFromListModal(prodId) {
+            if (!getCurrentUser()) {
+                productReviewsModal.hide();
+                requireLoginForAction('viết đánh giá sản phẩm', () => writeReviewFromListModal(prodId));
+                return;
+            }
             const db = getPitchData();
             // Tìm đơn mua online gần nhất của sản phẩm này (để gắn đúng mã đơn và size đã mua)
             let matchedOrderId = '';
@@ -2282,11 +2316,52 @@
             showToast(`Đã tạo mã Voucher "${code}" thành công!`, 'success');
         }
 
-        renderCategoryBar();
-        renderCustomerAndVoucherOptions();
-        renderProducts();
-        renderCart();
-        syncStickyPositions();
+        function applyPosRoleUI() {
+            const isPosMgr = canManage('pos');
+            const user = getCurrentUser();
+
+            document.getElementById('posAdminActions').classList.toggle('d-none', !isPosMgr);
+            document.getElementById('posStaffOrderControls').classList.toggle('d-none', !isPosMgr);
+
+            const buyerBox = document.getElementById('posCustomerBuyerBox');
+            buyerBox.classList.toggle('d-none', isPosMgr);
+
+            if (isPosMgr) {
+                document.getElementById('posPageTitle').innerText = 'Quản Lý Hàng Hóa, Khuyến Mãi & Bán Hàng (POS)';
+                document.getElementById('posPageSub').innerText = 'Bấm vào ảnh để xem album nhiều góc chụp • Hỗ trợ danh mục tùy chỉnh, chọn size & cảnh báo HSD';
+                document.getElementById('posBillTitle').innerHTML = '<i class="bi bi-receipt-cutoff text-success me-1"></i> Hóa đơn bán hàng';
+                document.getElementById('posCheckoutBtn').innerHTML = '<i class="bi bi-check2-circle me-1"></i> Thanh toán &amp; Xuất kho';
+            } else {
+                document.getElementById('posPageTitle').innerText = 'Cửa Hàng Thể Thao & Đồ Uống openPitch';
+                document.getElementById('posPageSub').innerText = 'Xem album ảnh, chọn size, áp mã khuyến mãi & đánh giá sao sau khi mua online';
+                document.getElementById('posBillTitle').innerHTML = '<i class="bi bi-bag-check-fill text-success me-1"></i> Giỏ hàng của bạn';
+                document.getElementById('posCheckoutBtn').innerHTML = user
+                    ? '<i class="bi bi-bag-check me-1"></i> Đặt mua &amp; Thanh toán Online'
+                    : '<i class="bi bi-box-arrow-in-right me-1"></i> Đăng nhập để Đặt mua';
+
+                buyerBox.innerHTML = user
+                    ? `<div class="d-flex justify-content-between align-items-center">
+                           <span><i class="bi bi-person-check-fill text-success me-1"></i>Người mua: <strong>${user.fullName}</strong></span>
+                           <span class="badge bg-success-subtle text-success">Mua Online</span>
+                       </div>`
+                    : `<div class="d-flex justify-content-between align-items-center">
+                           <span class="text-muted"><i class="bi bi-info-circle me-1"></i>Bạn đang xem tự do</span>
+                           <button type="button" class="btn btn-outline-success btn-sm py-0 px-2" style="font-size: 0.72rem;" onclick="openQuickLoginModal('Đăng nhập để đặt mua hàng nhanh chóng')">Đăng nhập</button>
+                       </div>`;
+            }
+
+            renderCategoryBar();
+            renderCustomerAndVoucherOptions();
+            renderProducts();
+            renderCart();
+            syncStickyPositions();
+        }
+
+        window.onAuthStateChanged = function() {
+            applyPosRoleUI();
+        };
+
+        applyPosRoleUI();
 
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('openPromo') === 'food') {
